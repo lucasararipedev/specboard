@@ -417,7 +417,6 @@ async function copyBoardLink() {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  max-width: 1500px;
 }
 
 .head h1 {
@@ -552,7 +551,6 @@ async function copyBoardLink() {
 .spec {
   display: grid;
   gap: 12px;
-  max-width: 900px;
   padding: 20px;
 }
 
@@ -574,7 +572,6 @@ async function copyBoardLink() {
 }
 
 .activity {
-  max-width: 900px;
   padding: 16px;
 }
 
