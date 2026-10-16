@@ -178,3 +178,13 @@ def test_interface_has_csp(make_client, tmp_path):
     assert "frame-ancestors 'none'" in csp and "script-src 'self'" in csp
     assert client.get("/../../etc/passwd").status_code in (200, 404)
     assert "root:" not in client.get("/..%2F..%2Fetc%2Fpasswd").text
+
+
+def test_prompt_and_guide_keep_the_board_private(client):
+    """A IA não pode vazar planos do board para o repositório nem descrever plano como pronto."""
+    prompt = client.get("/api/agent/prompt").text
+    guide = client.get("/llms.txt").text
+    for text in (prompt, guide):
+        assert "privad" in text and "commit" in text
+        assert "não invente" in text
+    assert "não um arquivo do repositório" in guide

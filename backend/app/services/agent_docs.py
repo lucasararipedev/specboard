@@ -24,7 +24,9 @@ Endereço: {url} (meus projetos ficam em {url}/projetos)
    - no começo de cada sessão de trabalho, consulte o briefing e me lembre das prioridades e dos lembretes que ele trouxer;
    - tudo que eu mencionar como tarefa, ideia, bug ou plano vira card no projeto certo (procure duplicata antes);
    - mova os cards conforme o trabalho anda (doing ao começar, done ao terminar, blocked se travar) e registre atividades curtas do que foi feito;
-   - decisões e mudanças de escopo vão primeiro para a spec do projeto, depois viram cards;
+   - decisões e mudanças de escopo vão primeiro para a spec do projeto no Specboard, depois viram cards; na spec, deixe claro o que já existe e o que ainda é plano;
+   - o Specboard é meu espaço de planejamento e é privado: ideias, planos e decisões ficam lá. Não copie isso para arquivos do repositório (README, docs, spec.md…) nem faça commit disso sem eu pedir, porque o repositório pode ser público;
+   - registre só o que eu disse ou o que você verificou; não invente detalhes, prazos nem decisões, e não descreva como pronto o que ainda é card;
    - quando faltar contexto para planejar ou decidir, registre perguntas para eu responder no board (com opções, se der) em vez de supor, e use minhas respostas assim que eu responder;
    - sempre me mande o link do board ou do card que você criou ou mudou;
    - identifique-se com o header X-Actor (ex.: claude, chatgpt, gemini).
@@ -58,9 +60,10 @@ acompanha pelo navegador e também pode mexer lá.
 
 1. Comece toda sessão de trabalho com `GET /api/briefing` e resuma para o usuário em poucas linhas:
    o que está em andamento, o que travou e qual a próxima prioridade. Traga os "Lembretes" do briefing.
-2. Spec first: a spec do projeto (`GET /api/projects/<slug>/spec`) é a fonte da verdade. Leia antes de
-   planejar. Decisões, mudanças de escopo e planos novos entram na spec (`PATCH` com o texto inteiro)
-   antes de virar card, e o card aponta a seção em `spec_ref`.
+2. Spec first: a spec do projeto no Specboard (`GET /api/projects/<slug>/spec`) é a fonte da verdade do
+   planejamento. Leia antes de planejar. Decisões, mudanças de escopo e planos novos entram nela (`PATCH`
+   com o texto inteiro) antes de virar card, e o card aponta a seção em `spec_ref`. É a spec do Specboard,
+   não um arquivo do repositório: mesmo que o repo tenha `spec.md` ou docs, não escreva planos lá.
 3. Toda tarefa, ideia, bug ou plano que o usuário mencionar vira card. Antes de criar, procure
    duplicata com `GET /api/search?q=...`. Ideia solta vai pro `backlog`; o que é pra já vai pro `todo`.
 4. Ao começar algo, mova para `doing`; ao terminar, `done`. Se travar, `blocked` e diga o motivo numa atividade.
@@ -75,8 +78,15 @@ acompanha pelo navegador e também pode mexer lá.
 9. Depois de criar ou mudar algo, passe ao usuário o link (campo `url` da resposta).
 10. Não apague cards nem projetos sem o usuário pedir. Prefira `done` ou arquivar (`archived: true`).
 11. Qual projeto usar: compare a pasta ou o repositório atual com os campos `repo` e `slug` de
-    `GET /api/projects`. Se nenhum bater, pergunte ao usuário antes de criar um projeto.
+    `GET /api/projects`. Se nenhum bater e o usuário disse que está trabalhando nesta pasta, crie o projeto
+    com `repo` apontando para ela; se não estiver claro qual é o projeto, pergunte antes de criar.
 12. Seja breve com o usuário. O board guarda os detalhes; a conversa só precisa do essencial e do link.
+13. O board é privado. Ideias, planos, decisões de negócio e perguntas ficam no Specboard. Não copie para
+    arquivos do repositório (README, docs, spec.md, CHANGELOG) nem faça commit disso sem o usuário pedir:
+    o repositório pode ser público. Arquivos do repo mudam só quando a tarefa pede e descrevem o que existe.
+14. Plano não é fato. Na spec, separe o que já existe do que é planejado; o que não está feito é card,
+    não funcionalidade. Registre só o que o usuário disse ou o que você verificou; não invente detalhes,
+    prazos nem decisões. Na dúvida, pergunte (regra 6).
 
 ## Conceitos
 
@@ -151,6 +161,8 @@ EOF
 ```
 
 ## Modelo de spec (para projeto novo)
+
+Marque o que já está pronto (ex.: "(feito)") e deixe planos no roadmap ou nos cards.
 
 ```markdown
 # <Nome>
