@@ -87,6 +87,9 @@ com 2 a 4 opções) e o usuário responde na aba **Perguntas** do projeto (`/p/<
 - `/llms.txt`: manual com regras, conceitos, endpoints e exemplos, com a URL da instância.
 - `/api/agent/prompt` e `PROMPT.md`: o prompt padrão para colar na IA, **um texto só para qualquer IA** (um
   teste garante que os dois batem). Ele pede para a IA salvar as regras na própria memória.
+- O prompt e o manual mantêm o board privado: ideias, planos e decisões ficam no Specboard, e a IA não os copia
+  para arquivos do repositório nem commita sem o usuário pedir. Na spec, ela separa o que existe do que é plano
+  e só registra o que foi dito ou verificado.
 - Busca (`/api/search`) para a IA evitar card duplicado.
 - Toda resposta de projeto e card traz `url` pronta para mandar ao usuário.
 - OpenAPI em `/docs`.
