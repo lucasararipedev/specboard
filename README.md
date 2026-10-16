@@ -9,6 +9,11 @@
 
 <p align="center"><b>Open source e gratuito.</b> Se o Specboard te ajudar, deixe uma ⭐ no repositório: ajuda outros devs a encontrarem o projeto.</p>
 
+<p align="center">
+  <img src="docs/demo.gif" width="800" alt="Specboard em uso: a IA cria e move cards no kanban, a spec, as perguntas e o histórico de atividade">
+  <br><sub>Você só acompanha: quem cadastra e mantém os cards é a sua IA.</sub>
+</p>
+
 **Kanban spec-first que a sua IA mantém por você.** Sobe com um `docker compose up`, você cola um prompt na
 sua IA (Claude, ChatGPT, Gemini, Cursor, Codex…, o mesmo texto para todas) e a partir daí ela registra
 tarefas, move status, guarda decisões na spec e te lembra das prioridades no começo de cada sessão, sempre com
@@ -125,7 +130,7 @@ backend/          FastAPI + SQLAlchemy + SQLite (Python 3.12)
 frontend/         Vue 3 + Vite + TypeScript + Vue Router
   src/views/        Início (landing com o prompt), Projetos, Board (kanban, spec, perguntas, atividade)
   src/components/   CardModal, CopyBlock, MarkdownView, QuestionsPanel
-docs/             conectar-ia.md (o prompt, IAs no navegador, dúvidas)
+docs/             conectar-ia.md (o prompt, IAs no navegador, dúvidas), demo.gif (README)
 scripts/demo-video/  grava o vídeo de demonstração da página inicial
 spec.md           a spec deste projeto: problema, escopo da v1, roadmap, decisões
 PROMPT.md         o prompt padrão (um teste garante que bate com o servido pela API)
