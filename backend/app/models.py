@@ -1,4 +1,4 @@
-"""Modelo de dados: Project (com a spec) → Card (o kanban) e Activity (o diário)."""
+"""Modelo de dados: Project (com a spec) → Card (o kanban), Question (o que a IA precisa saber) e Activity (o diário)."""
 
 from datetime import date, datetime
 
@@ -12,6 +12,10 @@ STATUSES = ("backlog", "todo", "doing", "blocked", "done")
 
 # 0 = urgente, 3 = algum dia.
 PRIORITY_LABELS = {0: "P0", 1: "P1", 2: "P2", 3: "P3"}
+
+# open: esperando o usuário · answered: respondida, a IA ainda não usou · applied: a IA já incorporou
+# na spec/cards · dismissed: o usuário dispensou.
+QUESTION_STATUSES = ("open", "answered", "applied", "dismissed")
 
 
 class Project(Base):
@@ -33,6 +37,9 @@ class Project(Base):
         back_populates="project", cascade="all, delete-orphan", passive_deletes=True
     )
     activities: Mapped[list["Activity"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan", passive_deletes=True
+    )
+    questions: Mapped[list["Question"]] = relationship(
         back_populates="project", cascade="all, delete-orphan", passive_deletes=True
     )
 
@@ -57,6 +64,28 @@ class Card(Base):
     done_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
     project: Mapped[Project] = relationship(back_populates="cards")
+
+
+class Question(Base):
+    """Pergunta para o usuário responder. Quanto mais respondidas, menos a IA precisa supor."""
+
+    __tablename__ = "questions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    card_id: Mapped[int | None] = mapped_column(ForeignKey("cards.id", ondelete="SET NULL"), nullable=True)
+    question: Mapped[str] = mapped_column(Text)
+    # Por que a resposta importa / o que muda com ela.
+    context: Mapped[str] = mapped_column(Text, default="")
+    # Respostas sugeridas; o usuário clica numa ou escreve a própria.
+    options: Mapped[list[str]] = mapped_column(JSON, default=list)
+    answer: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(16), default="open", index=True)
+    asked_by: Mapped[str] = mapped_column(String(64), default="user")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    answered_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+
+    project: Mapped[Project] = relationship(back_populates="questions")
 
 
 class Activity(Base):

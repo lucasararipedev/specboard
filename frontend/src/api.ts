@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { Activity, Card, Project, ProjectDetail } from './types'
+import type { Activity, Card, Project, ProjectDetail, Question } from './types'
 
 const TOKEN_KEY = 'specboard-token'
 
@@ -72,6 +72,10 @@ export const api = {
     request<Card>('POST', `/api/projects/${slug}/cards`, body),
   updateCard: (id: number, patch: Partial<Card>) => request<Card>('PATCH', `/api/cards/${id}`, patch),
   deleteCard: (id: number) => request<void>('DELETE', `/api/cards/${id}`),
+
+  questions: (slug: string) => request<Question[]>('GET', `/api/projects/${slug}/questions`),
+  updateQuestion: (id: number, patch: Partial<Pick<Question, 'answer' | 'status'>>) =>
+    request<Question>('PATCH', `/api/questions/${id}`, patch),
 
   activity: (slug: string, opts: { limit?: number; cardId?: number } = {}) => {
     const params = new URLSearchParams({ limit: String(opts.limit ?? 100) })

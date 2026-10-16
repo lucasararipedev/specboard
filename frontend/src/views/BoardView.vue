@@ -3,9 +3,18 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { formatDate, isOverdue, timeAgo } from '../format'
-import { STATUSES, STATUS_LABEL, type Activity, type Card, type ProjectDetail, type Status } from '../types'
+import {
+  STATUSES,
+  STATUS_LABEL,
+  type Activity,
+  type Card,
+  type ProjectDetail,
+  type Question,
+  type Status,
+} from '../types'
 import CardModal from '../components/CardModal.vue'
 import MarkdownView from '../components/MarkdownView.vue'
+import QuestionsPanel from '../components/QuestionsPanel.vue'
 
 const props = defineProps<{ slug: string }>()
 const route = useRoute()
@@ -15,11 +24,35 @@ const router = useRouter()
 const POLL_MS = 5000
 const DONE_VISIBLE = 15
 
-type Tab = 'board' | 'spec' | 'activity'
-const tab = ref<Tab>('board')
+// A aba fica na URL (?tab=perguntas) para a IA mandar o link direto.
+type Tab = 'board' | 'spec' | 'activity' | 'questions'
+const TAB_QUERY: Record<Tab, string | undefined> = {
+  board: undefined,
+  spec: 'spec',
+  activity: 'atividade',
+  questions: 'perguntas',
+}
+
+function tabFromQuery(): Tab {
+  const found = Object.entries(TAB_QUERY).find(([, value]) => value && value === route.query.tab)
+  return (found?.[0] as Tab | undefined) ?? 'board'
+}
+
+const tab = ref<Tab>(tabFromQuery())
+watch(tab, (t) => {
+  const { tab: _, ...rest } = route.query
+  router.replace({ query: TAB_QUERY[t] ? { ...rest, tab: TAB_QUERY[t] } : rest })
+})
+watch(
+  () => route.query.tab,
+  () => (tab.value = tabFromQuery()),
+)
+
 const project = ref<ProjectDetail | null>(null)
 const cards = ref<Card[]>([])
 const activity = ref<Activity[]>([])
+const questions = ref<Question[]>([])
+const openQuestions = computed(() => questions.value.filter((q) => q.status === 'open').length)
 const loading = ref(true)
 const error = ref('')
 
@@ -42,10 +75,19 @@ async function loadActivity() {
   activity.value = await api.activity(props.slug, { limit: 100 })
 }
 
+async function loadQuestions() {
+  questions.value = await api.questions(props.slug)
+}
+
+function onQuestionsChanged() {
+  loadQuestions()
+  loadActivity()
+}
+
 async function loadAll() {
   error.value = ''
   try {
-    const [p] = await Promise.all([api.project(props.slug), loadCards(), loadActivity()])
+    const [p] = await Promise.all([api.project(props.slug), loadCards(), loadActivity(), loadQuestions()])
     project.value = p
     if (!editingSpec.value) specDraft.value = p.spec
   } catch (e) {
@@ -59,7 +101,7 @@ let timer: number | undefined
 async function poll() {
   if (document.hidden || dragging.value || saving.value) return
   try {
-    await Promise.all([loadCards(), loadActivity()])
+    await Promise.all([loadCards(), loadActivity(), loadQuestions()])
     if (tab.value === 'spec' && !editingSpec.value) {
       project.value = await api.project(props.slug)
       specDraft.value = project.value.spec
@@ -283,6 +325,9 @@ async function copyBoardLink() {
         <button :class="{ active: tab === 'spec' }" @click="tab = 'spec'">
           Spec <span v-if="!project.spec.trim()" class="chip p1">vazia</span>
         </button>
+        <button :class="{ active: tab === 'questions' }" @click="tab = 'questions'">
+          Perguntas <span v-if="openQuestions" class="badge">{{ openQuestions }}</span>
+        </button>
         <button :class="{ active: tab === 'activity' }" @click="tab = 'activity'">Atividade</button>
       </nav>
 
@@ -378,6 +423,15 @@ async function copyBoardLink() {
         </div>
       </section>
 
+      <!-- PERGUNTAS -->
+      <QuestionsPanel
+        v-else-if="tab === 'questions'"
+        :questions="questions"
+        :highlight="Number(route.query.q) || undefined"
+        @changed="onQuestionsChanged"
+        @open-card="showCard"
+      />
+
       <!-- ATIVIDADE -->
       <section v-else class="panel activity">
         <form class="note" @submit.prevent="addNote">
@@ -453,6 +507,16 @@ async function copyBoardLink() {
   background: none;
   cursor: pointer;
   color: var(--muted);
+}
+
+.badge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: 600 11.5px/1.7 var(--font-mono);
+  text-align: center;
 }
 
 .tabs button.active {

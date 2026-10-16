@@ -10,8 +10,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..config import Settings
-from ..models import PRIORITY_LABELS, Activity, Card, Project
-from .serialize import card_url, project_url, status_counts
+from ..models import PRIORITY_LABELS, Activity, Card, Project, Question
+from .serialize import card_url, project_url, questions_url, status_counts
 
 NEXT_UP_LIMIT = 5
 WIP_LIMIT = 3
@@ -52,7 +52,22 @@ def _project_briefing(db: Session, settings: Settings, project: Project, now: da
         .limit(1)
     )
 
+    questions = list(
+        db.scalars(
+            select(Question)
+            .where(Question.project_id == project.id, Question.status.in_(("open", "answered")))
+            .order_by(Question.id)
+        )
+    )
+    open_questions = [q for q in questions if q.status == "open"]
+    new_answers = [q for q in questions if q.status == "answered"]
+
     nudges: list[str] = []
+    if new_answers:
+        nudges.append(
+            f"{len(new_answers)} resposta(s) nova(s) do usuário: incorpore na spec ou nos cards e marque cada "
+            'pergunta como "applied".'
+        )
     if not project.spec.strip():
         nudges.append("Projeto sem spec: proponha escrever uma (objetivo, público, escopo da v1, fora de escopo).")
     if not doing and next_up:
@@ -70,6 +85,11 @@ def _project_briefing(db: Session, settings: Settings, project: Project, now: da
         nudges.append(f'#{c.id} "{c.title}" é {PRIORITY_LABELS[c.priority]} e está no backlog: sugira mover pro todo.')
     if last and last.created_at < now - timedelta(days=QUIET_DAYS):
         nudges.append(f"Sem atividade há {(now - last.created_at).days} dias: pergunte se o projeto segue ativo.")
+    if open_questions:
+        nudges.append(
+            f"{len(open_questions)} pergunta(s) esperando o usuário em {questions_url(settings, project.slug)}. "
+            "Quando for natural, peça para ele responder (ou pergunte na conversa e registre a resposta)."
+        )
 
     return {
         "slug": project.slug,
@@ -84,6 +104,13 @@ def _project_briefing(db: Session, settings: Settings, project: Project, now: da
         "next_up": [_brief(settings, project.slug, c) for c in next_up],
         "overdue": [_brief(settings, project.slug, c) for c in overdue],
         "done_last_7_days": done_last_7_days,
+        "open_questions": [
+            {"id": q.id, "question": q.question, "options": q.options, "url": questions_url(settings, project.slug, q.id)}
+            for q in open_questions
+        ],
+        "new_answers": [
+            {"id": q.id, "question": q.question, "answer": q.answer, "card_id": q.card_id} for q in new_answers
+        ],
         "last_activity": (
             {"at": last.created_at.isoformat(), "actor": last.actor, "message": last.message} if last else None
         ),
@@ -129,6 +156,12 @@ def render_markdown(briefing: dict) -> str:
         for title, key in (("Em andamento", "doing"), ("Travado", "blocked"), ("Próximos", "next_up")):
             if p[key]:
                 out += ["", f"**{title}**"] + [_line(c) for c in p[key]]
+        if p["new_answers"]:
+            out += ["", '**Respostas novas (incorpore e marque "applied")**']
+            out += [f"- pergunta {a['id']}: {a['question']} → {a['answer']}" for a in p["new_answers"]]
+        if p["open_questions"]:
+            out += ["", f"**Perguntas esperando o usuário ({len(p['open_questions'])})**"]
+            out += [f"- pergunta {q['id']}: {q['question']}" for q in p["open_questions"][:NEXT_UP_LIMIT]]
         if p["last_activity"]:
             a = p["last_activity"]
             out += ["", f"Última atividade: {a['at'][:10]} ({a['actor']}) {a['message']}"]

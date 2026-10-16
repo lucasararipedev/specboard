@@ -25,6 +25,7 @@ Endereço: {url}
    - tudo que eu mencionar como tarefa, ideia, bug ou plano vira card no projeto certo (procure duplicata antes);
    - mova os cards conforme o trabalho anda (doing ao começar, done ao terminar, blocked se travar) e registre atividades curtas do que foi feito;
    - decisões e mudanças de escopo vão primeiro para a spec do projeto, depois viram cards;
+   - quando faltar contexto para planejar ou decidir, registre perguntas para eu responder no board (com opções, se der) em vez de supor, e use minhas respostas assim que eu responder;
    - sempre me mande o link do board ou do card que você criou ou mudou;
    - identifique-se com o header X-Actor (ex.: claude, chatgpt, gemini).
 4. Se você tem memória persistente, salve estas regras e o endereço lá para seguir nas próximas conversas (Claude Code: ~/.claude/CLAUDE.md; Cursor: Rules; ChatGPT: Memória ou Instruções personalizadas; Gemini: Gem ou instruções salvas).
@@ -64,12 +65,18 @@ acompanha pelo navegador e também pode mexer lá.
    duplicata com `GET /api/search?q=...`. Ideia solta vai pro `backlog`; o que é pra já vai pro `todo`.
 4. Ao começar algo, mova para `doing`; ao terminar, `done`. Se travar, `blocked` e diga o motivo numa atividade.
 5. Registre atividades curtas: o que foi feito (`kind: note`) e o que foi decidido (`kind: decision`).
-6. Mande sempre o header `X-Actor: <seu nome>` (claude, chatgpt, gemini...) para o usuário saber quem mexeu.
-7. Depois de criar ou mudar algo, passe ao usuário o link (campo `url` da resposta).
-8. Não apague cards nem projetos sem o usuário pedir. Prefira `done` ou arquivar (`archived: true`).
-9. Qual projeto usar: compare a pasta ou o repositório atual com os campos `repo` e `slug` de
-   `GET /api/projects`. Se nenhum bater, pergunte ao usuário antes de criar um projeto.
-10. Seja breve com o usuário. O board guarda os detalhes; a conversa só precisa do essencial e do link.
+6. Não suponha o que só o usuário sabe. Quando faltar informação para planejar ou decidir bem, crie uma
+   pergunta (`POST /api/projects/<slug>/questions`), objetiva e com 2 a 4 opções quando der. O usuário
+   responde na aba Perguntas do board. Se ele responder na conversa, registre você mesmo (`PATCH` com `answer`).
+7. "Respostas novas" no briefing são respostas que você ainda não usou: incorpore na spec ou nos cards e
+   marque a pergunta com `status: "applied"`. Todo projeto novo já nasce com perguntas iniciais (problema,
+   v1, prazo, fora de escopo, tempo disponível); as respostas delas são a base da primeira spec.
+8. Mande sempre o header `X-Actor: <seu nome>` (claude, chatgpt, gemini...) para o usuário saber quem mexeu.
+9. Depois de criar ou mudar algo, passe ao usuário o link (campo `url` da resposta).
+10. Não apague cards nem projetos sem o usuário pedir. Prefira `done` ou arquivar (`archived: true`).
+11. Qual projeto usar: compare a pasta ou o repositório atual com os campos `repo` e `slug` de
+    `GET /api/projects`. Se nenhum bater, pergunte ao usuário antes de criar um projeto.
+12. Seja breve com o usuário. O board guarda os detalhes; a conversa só precisa do essencial e do link.
 
 ## Conceitos
 
@@ -79,6 +86,8 @@ acompanha pelo navegador e também pode mexer lá.
 - **position**: ordem dentro da coluna (menor fica em cima); ao mudar de status sem informar, o card vai pro fim
 - **labels**: lista livre de etiquetas, ex.: `["bug", "front"]`
 - **due_date**: prazo opcional `AAAA-MM-DD`; vencidos aparecem no briefing
+- **pergunta**: `open` (esperando o usuário) → `answered` (respondida, você ainda não usou) → `applied`
+  (você já incorporou); `dismissed` se o usuário dispensar. `options` são respostas sugeridas.
 
 ## Endpoints
 
@@ -87,7 +96,7 @@ acompanha pelo navegador e também pode mexer lá.
 | GET | `/api/briefing` | Resumo de todos os projetos com lembretes (Markdown; `?format=json` para JSON) |
 | GET | `/api/projects/<slug>/briefing` | Resumo de um projeto |
 | GET | `/api/projects` | Lista projetos (`?include_archived=true` para incluir arquivados) |
-| POST | `/api/projects` | Cria projeto: `{{"name", "slug"?, "summary"?, "spec"?, "repo"?}}` |
+| POST | `/api/projects` | Cria projeto (já com perguntas iniciais): `{{"name", "slug"?, "summary"?, "spec"?, "repo"?}}` |
 | GET | `/api/projects/<slug>` | Projeto com a spec |
 | GET | `/api/projects/<slug>/spec` | Só a spec, em Markdown |
 | PATCH | `/api/projects/<slug>` | Edita `name`, `summary`, `spec`, `repo`, `archived` |
@@ -96,6 +105,9 @@ acompanha pelo navegador e também pode mexer lá.
 | GET | `/api/cards/<id>` | Um card |
 | PATCH | `/api/cards/<id>` | Edita qualquer campo do card (inclui `status` e `position`) |
 | DELETE | `/api/cards/<id>` | Apaga (só se o usuário pedir) |
+| GET | `/api/projects/<slug>/questions` | Perguntas (`?status=open`, `answered`...) |
+| POST | `/api/projects/<slug>/questions` | Pergunta: `{{"question", "context"?, "options"?, "card_id"?}}` |
+| PATCH | `/api/questions/<id>` | Responder (`answer`) ou marcar `status: "applied"` |
 | GET | `/api/projects/<slug>/activity` | Histórico (`?limit=50&card_id=`) |
 | POST | `/api/projects/<slug>/activity` | Registra: `{{"message", "kind": "note"|"decision", "card_id"?}}` |
 | GET | `/api/search?q=texto` | Busca cards por título, descrição e spec_ref (`&project=<slug>`) |
@@ -124,6 +136,13 @@ curl -s -X PATCH {url}/api/cards/12 {hj} -d '{{"status": "done"}}'
 # Anotar o que foi feito ou decidido
 curl -s -X POST {url}/api/projects/meu-saas/activity {hj} \\
   -d '{{"message": "Escolhemos Stripe em vez de Pagar.me pela API de assinaturas", "kind": "decision"}}'
+
+# Perguntar em vez de supor
+curl -s -X POST {url}/api/projects/meu-saas/questions {hj} \
+  -d '{{"question": "Cobrança mensal ou anual no lançamento?", "context": "Muda o card de integração com o Stripe", "options": ["Só mensal", "Mensal e anual"]}}'
+
+# Depois de usar a resposta
+curl -s -X PATCH {url}/api/questions/7 {hj} -d '{{"status": "applied"}}'
 
 # Atualizar a spec (mande o texto inteiro)
 curl -s -X PATCH {url}/api/projects/meu-saas {hj} -d @- <<'EOF'

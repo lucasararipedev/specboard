@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Status = Literal["backlog", "todo", "doing", "blocked", "done"]
+QuestionStatus = Literal["open", "answered", "applied", "dismissed"]
 Priority = int  # 0 (urgente) a 3 (algum dia)
 
 SLUG_PATTERN = r"^[a-z0-9][a-z0-9-]{0,63}$"
@@ -17,6 +18,7 @@ class ProjectCreate(BaseModel):
     summary: str = Field("", description="Uma linha: o que é o projeto")
     spec: str = Field("", description="Spec em Markdown; fonte da verdade do projeto")
     repo: str = Field("", description="Caminho local ou URL do repositório")
+    starter_questions: bool = Field(True, description="Cria as perguntas iniciais (problema, v1, prazo...)")
 
 
 class ProjectUpdate(BaseModel):
@@ -36,6 +38,7 @@ class ProjectOut(BaseModel):
     archived: bool
     url: str
     counts: dict[str, int]
+    open_questions: int
     created_at: datetime
     updated_at: datetime
 
@@ -81,6 +84,36 @@ class CardOut(BaseModel):
     updated_at: datetime
     started_at: datetime | None
     done_at: datetime | None
+
+
+class QuestionCreate(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+    context: str = Field("", description="Por que a resposta importa / o que muda com ela")
+    options: list[str] = Field(default_factory=list, description="Respostas sugeridas (2 a 4 é o ideal)")
+    card_id: int | None = None
+
+
+class QuestionUpdate(BaseModel):
+    answer: str | None = Field(None, description="Responder muda o status para answered")
+    status: QuestionStatus | None = Field(None, description='A IA marca "applied" depois de usar a resposta')
+    question: str | None = Field(None, min_length=1, max_length=1000)
+    context: str | None = None
+    options: list[str] | None = None
+
+
+class QuestionOut(BaseModel):
+    id: int
+    project: str
+    card_id: int | None
+    question: str
+    context: str
+    options: list[str]
+    answer: str
+    status: QuestionStatus
+    asked_by: str
+    url: str
+    created_at: datetime
+    answered_at: datetime | None
 
 
 class ActivityCreate(BaseModel):

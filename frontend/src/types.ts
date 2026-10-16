@@ -26,6 +26,7 @@ export interface Project {
   archived: boolean
   url: string
   counts: Record<Status, number>
+  open_questions: number
   created_at: string
   updated_at: string
 }
@@ -50,6 +51,23 @@ export interface Card {
   updated_at: string
   started_at: string | null
   done_at: string | null
+}
+
+export type QuestionStatus = 'open' | 'answered' | 'applied' | 'dismissed'
+
+export interface Question {
+  id: number
+  project: string
+  card_id: number | null
+  question: string
+  context: string
+  options: string[]
+  answer: string
+  status: QuestionStatus
+  asked_by: string
+  url: string
+  created_at: string
+  answered_at: string | null
 }
 
 export interface Activity {

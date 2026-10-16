@@ -9,11 +9,11 @@ from sqlalchemy.orm import Session
 
 from ..config import Settings
 from ..deps import get_db, get_settings, project_or_404, require_token
-from ..models import Activity, Card, Project
+from ..models import Activity, Card, Project, Question
 from ..schemas import CardOut
 from ..services.agent_docs import agent_guide, agent_prompt
 from ..services.briefing import build_briefing, render_markdown
-from ..services.serialize import activity_out, card_out
+from ..services.serialize import activity_out, card_out, question_out
 
 router = APIRouter(tags=["agent"], dependencies=[Depends(require_token)])
 public = APIRouter(tags=["agent"])
@@ -71,10 +71,11 @@ def search(
 
 @router.get("/api/export")
 def export(db: Session = Depends(get_db), settings: Settings = Depends(get_settings)):
-    """Backup completo em JSON (projetos com spec, cards e atividades)."""
+    """Backup completo em JSON (projetos com spec, cards, perguntas e atividades)."""
     projects = []
     for p in db.scalars(select(Project).order_by(Project.id)):
         cards = db.scalars(select(Card).where(Card.project_id == p.id).order_by(Card.id))
+        questions = db.scalars(select(Question).where(Question.project_id == p.id).order_by(Question.id))
         activities = db.scalars(select(Activity).where(Activity.project_id == p.id).order_by(Activity.id))
         projects.append(
             {
@@ -86,6 +87,7 @@ def export(db: Session = Depends(get_db), settings: Settings = Depends(get_setti
                 "archived": p.archived,
                 "created_at": p.created_at,
                 "cards": [card_out(settings, c) for c in cards],
+                "questions": [question_out(settings, q) for q in questions],
                 "activity": [activity_out(a) for a in activities],
             }
         )

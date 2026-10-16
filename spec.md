@@ -71,6 +71,18 @@ feitos nos últimos 7 dias, última atividade e **lembretes** para a IA puxar co
 - P0/P1 esquecido no backlog;
 - projeto sem atividade há 7 dias.
 
+### 5.4.1 Perguntas para o usuário
+A IA não deve supor o que só o usuário sabe. Quando falta contexto, ela registra uma pergunta (de preferência
+com 2 a 4 opções) e o usuário responde na aba **Perguntas** do projeto (`/p/<slug>?tab=perguntas`).
+
+- Ciclo: `open` → `answered` (o usuário respondeu) → `applied` (a IA incorporou na spec ou nos cards). O
+  usuário também pode dispensar (`dismissed`) e reabrir.
+- Todo projeto novo nasce com 5 perguntas iniciais: problema e público, o que é a v1, prazo, o que fica de fora
+  e tempo por semana. As respostas são a base da primeira spec (`starter_questions: false` desliga).
+- O briefing traz as respostas novas (para a IA incorporar e marcar `applied`) e as perguntas abertas (para a IA
+  lembrar o usuário). Responder na conversa também vale: a IA registra a resposta pela API.
+- A pergunta pode apontar um card; perguntar e responder entram no histórico.
+
 ### 5.5 Feito para IA
 - `/llms.txt`: manual com regras, conceitos, endpoints e exemplos, com a URL da instância.
 - `/api/agent/prompt` e `PROMPT.md`: o prompt padrão para colar na IA (um teste garante que os dois batem).

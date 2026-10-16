@@ -4,8 +4,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..config import Settings
-from ..models import STATUSES, Activity, Card, Project
-from ..schemas import ActivityOut, CardOut, ProjectDetail, ProjectOut
+from ..models import STATUSES, Activity, Card, Project, Question
+from ..schemas import ActivityOut, CardOut, ProjectDetail, ProjectOut, QuestionOut
 
 
 def project_url(settings: Settings, slug: str) -> str:
@@ -14,6 +14,17 @@ def project_url(settings: Settings, slug: str) -> str:
 
 def card_url(settings: Settings, slug: str, card_id: int) -> str:
     return f"{project_url(settings, slug)}?card={card_id}"
+
+
+def questions_url(settings: Settings, slug: str, question_id: int | None = None) -> str:
+    url = f"{project_url(settings, slug)}?tab=perguntas"
+    return f"{url}&q={question_id}" if question_id else url
+
+
+def open_question_count(db: Session, project_id: int) -> int:
+    return db.scalar(
+        select(func.count()).where(Question.project_id == project_id, Question.status == "open")
+    )
 
 
 def status_counts(db: Session, project_id: int) -> dict[str, int]:
@@ -35,6 +46,7 @@ def project_out(db: Session, settings: Settings, project: Project, detail: bool 
         archived=project.archived,
         url=project_url(settings, project.slug),
         counts=status_counts(db, project.id),
+        open_questions=open_question_count(db, project.id),
         created_at=project.created_at,
         updated_at=project.updated_at,
     )
@@ -59,6 +71,23 @@ def card_out(settings: Settings, card: Card) -> CardOut:
         updated_at=card.updated_at,
         started_at=card.started_at,
         done_at=card.done_at,
+    )
+
+
+def question_out(settings: Settings, q: Question) -> QuestionOut:
+    return QuestionOut(
+        id=q.id,
+        project=q.project.slug,
+        card_id=q.card_id,
+        question=q.question,
+        context=q.context,
+        options=q.options or [],
+        answer=q.answer,
+        status=q.status,
+        asked_by=q.asked_by,
+        url=questions_url(settings, q.project.slug, q.id),
+        created_at=q.created_at,
+        answered_at=q.answered_at,
     )
 
 

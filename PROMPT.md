@@ -9,6 +9,7 @@ Endereço: http://localhost:8787
    - tudo que eu mencionar como tarefa, ideia, bug ou plano vira card no projeto certo (procure duplicata antes);
    - mova os cards conforme o trabalho anda (doing ao começar, done ao terminar, blocked se travar) e registre atividades curtas do que foi feito;
    - decisões e mudanças de escopo vão primeiro para a spec do projeto, depois viram cards;
+   - quando faltar contexto para planejar ou decidir, registre perguntas para eu responder no board (com opções, se der) em vez de supor, e use minhas respostas assim que eu responder;
    - sempre me mande o link do board ou do card que você criou ou mudou;
    - identifique-se com o header X-Actor (ex.: claude, chatgpt, gemini).
 4. Se você tem memória persistente, salve estas regras e o endereço lá para seguir nas próximas conversas (Claude Code: ~/.claude/CLAUDE.md; Cursor: Rules; ChatGPT: Memória ou Instruções personalizadas; Gemini: Gem ou instruções salvas).

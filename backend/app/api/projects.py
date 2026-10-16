@@ -9,6 +9,7 @@ from ..config import Settings
 from ..deps import get_actor, get_db, get_settings, project_or_404, require_token
 from ..models import Activity, Project
 from ..schemas import ProjectCreate, ProjectDetail, ProjectOut, ProjectUpdate
+from ..services.questions import add_starter_questions
 from ..services.serialize import project_out
 
 router = APIRouter(prefix="/api/projects", tags=["projects"], dependencies=[Depends(require_token)])
@@ -58,6 +59,8 @@ def create_project(
     )
     db.add(project)
     db.flush()
+    if body.starter_questions:
+        add_starter_questions(db, project.id)
     db.add(Activity(project_id=project.id, actor=actor, kind="created", message=f'Criou o projeto "{project.name}"'))
     db.commit()
     return project_out(db, settings, project, detail=True)

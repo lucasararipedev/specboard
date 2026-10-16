@@ -92,6 +92,9 @@ watch(showArchived, load)
           <span><b>{{ p.counts.todo }}</b> a fazer</span>
           <span v-if="p.counts.blocked" class="blocked"><b>{{ p.counts.blocked }}</b> travado</span>
           <span><b>{{ p.counts.done }}</b> feito</span>
+          <span v-if="p.open_questions" class="questions">
+            <b>{{ p.open_questions }}</b> {{ p.open_questions === 1 ? 'pergunta' : 'perguntas' }}
+          </span>
         </div>
         <p class="muted small">Atualizado {{ timeAgo(p.updated_at) }}</p>
       </RouterLink>
@@ -179,6 +182,10 @@ watch(showArchived, load)
 
 .blocked {
   color: var(--danger);
+}
+
+.questions {
+  color: var(--accent);
 }
 
 .skeleton {

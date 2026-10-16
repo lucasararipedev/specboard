@@ -21,6 +21,8 @@ IA:   "Você tem o bug do login em andamento há 3 dias e o Stripe é o próximo
 - **Um kanban por projeto**: `backlog → todo → doing → blocked → done`, com prioridade, prazo e etiquetas.
 - **Spec first**: cada projeto tem uma spec em Markdown que é a fonte da verdade. Decisões entram nela antes
   de virar card, e cada card aponta a seção que implementa.
+- **Perguntas**: em vez de supor, a IA te pergunta o que só você sabe (com opções para clicar). Você responde
+  no board e ela usa a resposta na spec e nos cards. Todo projeto novo já vem com 5 perguntas iniciais.
 - **Atividade**: tudo que muda fica registrado, com quem mudou (você ou a IA).
 - **Briefing**: um resumo por projeto com lembretes prontos para a IA puxar com você (card parado há dias, P0
   esquecido no backlog, prazo vencido, nada em andamento…).
@@ -78,6 +80,7 @@ em `curl`. A referência completa (OpenAPI) está em http://localhost:8787/docs.
 | `GET /api/briefing` | Resumo de todos os projetos com lembretes (`?format=json`) |
 | `GET/POST /api/projects`, `GET/PATCH/DELETE /api/projects/<slug>` | Projetos e spec |
 | `GET/POST /api/projects/<slug>/cards`, `GET/PATCH/DELETE /api/cards/<id>` | Cards |
+| `GET/POST /api/projects/<slug>/questions`, `PATCH /api/questions/<id>` | Perguntas para o usuário e respostas |
 | `GET/POST /api/projects/<slug>/activity` | Histórico, notas e decisões |
 | `GET /api/search?q=` | Busca de cards (para não duplicar) |
 | `GET /api/export` | Backup em JSON |

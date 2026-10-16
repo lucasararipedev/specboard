@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import sessionmaker
 
-from .api import activity, agent, cards, projects
+from .api import activity, agent, cards, projects, questions
 from .config import Settings, load_settings
 from .db import Base, make_engine
 
@@ -33,7 +33,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def health():
         return {"ok": True}
 
-    for module in (projects, cards, activity):
+    for module in (projects, cards, questions, activity):
         app.include_router(module.router)
     app.include_router(agent.router)
     app.include_router(agent.public)
