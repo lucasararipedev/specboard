@@ -298,6 +298,19 @@ label {
   overflow-x: auto;
 }
 
+/* Checklist (- [ ] / - [x]): a caixinha fica na linha do texto, não esticada como os inputs de formulário. */
+.markdown li:has(> input[type='checkbox']) {
+  list-style: none;
+  margin-left: -1.3em;
+}
+
+.markdown input[type='checkbox'] {
+  width: auto;
+  margin: 0 8px 0 0;
+  vertical-align: -1px;
+  accent-color: var(--text);
+}
+
 .markdown table {
   border-collapse: collapse;
 }

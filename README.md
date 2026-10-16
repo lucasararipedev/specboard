@@ -2,6 +2,13 @@
 
 <h1 align="center">Specboard</h1>
 
+<p align="center">
+  <a href="https://github.com/lucasararipedev/specboard/stargazers"><img src="https://img.shields.io/github/stars/lucasararipedev/specboard?style=social" alt="Estrelas no GitHub"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-MIT-c8462b" alt="Licença MIT"></a>
+</p>
+
+<p align="center"><b>Open source e gratuito.</b> Se o Specboard te ajudar, deixe uma ⭐ no repositório: ajuda outros devs a encontrarem o projeto.</p>
+
 **Kanban spec-first que a sua IA mantém por você.** Sobe com um `docker compose up`, você cola um prompt na
 sua IA (Claude, ChatGPT, Gemini, Cursor, Codex…, o mesmo texto para todas) e a partir daí ela registra
 tarefas, move status, guarda decisões na spec e te lembra das prioridades no começo de cada sessão, sempre com
@@ -119,6 +126,7 @@ frontend/         Vue 3 + Vite + TypeScript + Vue Router
   src/views/        Início (landing com o prompt), Projetos, Board (kanban, spec, perguntas, atividade)
   src/components/   CardModal, CopyBlock, MarkdownView, QuestionsPanel
 docs/             conectar-ia.md (o prompt, IAs no navegador, dúvidas)
+scripts/demo-video/  grava o vídeo de demonstração da página inicial
 spec.md           a spec deste projeto: problema, escopo da v1, roadmap, decisões
 PROMPT.md         o prompt padrão (um teste garante que bate com o servido pela API)
 Dockerfile        imagem única: build do front + API
@@ -132,6 +140,15 @@ O próximo passo grande é a **IA opcional dentro do sistema**: você cadastra u
 OpenRouter, modelo local) e ganha extração de cards a partir de texto solto, priorização sugerida e resumo
 semanal. Também no radar: servidor MCP, integração com GitHub e lembretes por e-mail/Telegram. Detalhes em
 [spec.md](spec.md), seção 7.
+
+## Apoie o projeto
+
+O Specboard é open source e vai continuar gratuito. Se ele te ajudou:
+
+- **Deixe uma estrela** em [github.com/lucasararipedev/specboard](https://github.com/lucasararipedev/specboard):
+  é o que faz o projeto aparecer para outros devs.
+- Abra uma [issue](https://github.com/lucasararipedev/specboard/issues) com bug, ideia ou o jeito como você usa.
+- Pull requests são bem-vindos; as convenções estão no [AGENTS.md](AGENTS.md).
 
 ## Licença
 

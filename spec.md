@@ -95,6 +95,8 @@ com 2 a 4 opções) e o usuário responde na aba **Perguntas** do projeto (`/p/<
 - **Página inicial (`/`)**: landing do projeto open source. Explica a proposta e os ganhos (memória de longo
   prazo entre sessões e projetos, spec first, perguntas, lembretes, troca de IA), traz os 3 passos para
   começar (subir com Docker, copiar o prompt, abrir os projetos) com botões de copiar, exemplo de uso e dúvidas.
+  No topo, ao lado do título, o vídeo de demonstração do board em uso (`frontend/public/demo.*`, gravado por
+  `scripts/demo-video`); logo abaixo, os 3 passos deixam claro que quem mantém aquilo é a IA do usuário.
 - **Projetos (`/projetos`)**, board, aba da spec (ver e editar), aba de perguntas, aba de atividade e modal do
   card com histórico. `/conectar` (página antiga) redireciona para o prompt na página inicial.
 - O board consulta a API a cada 5 s para mostrar o que a IA mudou. Sempre tema claro (visual de caderno).

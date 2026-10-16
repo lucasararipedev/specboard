@@ -1,0 +1,16 @@
+{
+  "name": "specboard-demo-video",
+  "private": true,
+  "type": "module",
+  "description": "Grava o vídeo de demonstração da página inicial (frontend/public/demo.*)",
+  "scripts": {
+    "reset": "./reset.sh",
+    "record": "node record.mjs",
+    "assemble": "node assemble.mjs",
+    "build": "./reset.sh && node record.mjs && node assemble.mjs && node publish.mjs"
+  },
+  "devDependencies": {
+    "ffmpeg-static": "5.2.0",
+    "playwright": "1.55.0"
+  }
+}
