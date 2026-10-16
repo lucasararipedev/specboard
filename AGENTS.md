@@ -29,3 +29,20 @@ commit do código (escopo da v1 na seção 5, roadmap na 7, decisões na 8).
 - Textos de interface e docs em português do Brasil.
 - Esquema do banco: `create_all` na v1. Ao mudar uma tabela existente, introduza Alembic em vez de quebrar
   bancos já criados.
+
+## Identidade visual
+
+O visual é de caderno de papel, de propósito longe da estética padrão de app gerado por IA. Tokens em
+`frontend/src/styles.css`; use as variáveis, nunca cor solta.
+
+- Sempre modo claro. Não existe tema escuro.
+- Papel quente (`--bg`, `--surface`), tinta quase preta (`--text`) e **um** acento, o vermelhão (`--accent`),
+  usado com parcimônia: aba ativa, P0, marcador do logo, links.
+- Botão primário é tinta (preto), não colorido. Nada de índigo, roxo ou gradiente.
+- Títulos em Fraunces (serifa), texto em Instrument Sans, ids, contagens e etiquetas em JetBrains Mono. Não
+  usar Inter. As fontes são locais (`@fontsource`), o app funciona offline.
+- Sombra "de papel": uma linha firme embaixo (`--shadow`, `--shadow-lift`), nunca halo borrado. Sem borda
+  colorida na lateral de card, sem emoji como ícone.
+- Movimento curto (0,15 s, ease-out), só `transform`, `opacity` e sombra; respeitar `prefers-reduced-motion`.
+- Textos curtos: rótulo em vez de frase, frase em vez de parágrafo.
+- Ícone: `frontend/public/favicon.svg` (cópia em `docs/logo.svg`), uma folha inclinada com marcador vermelho.

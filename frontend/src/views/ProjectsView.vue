@@ -139,11 +139,14 @@ watch(showArchived, load)
   padding: 16px;
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.15s;
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out;
 }
 
 .project:hover {
-  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
 }
 
 .project p {
@@ -157,7 +160,7 @@ watch(showArchived, load)
 }
 
 .title h2 {
-  font-size: 17px;
+  font-size: 21px;
 }
 
 .summary {

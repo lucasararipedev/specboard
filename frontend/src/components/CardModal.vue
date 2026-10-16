@@ -150,7 +150,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKey))
   align-items: flex-start;
   justify-content: center;
   padding: 5vh 16px;
-  background: rgb(0 0 0 / 45%);
+  background: rgb(38 34 30 / 32%);
   overflow-y: auto;
 }
 
@@ -168,8 +168,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKey))
 }
 
 .title {
-  font-size: 19px;
-  font-weight: 600;
+  font: 500 20px var(--font-serif);
+  font-variation-settings: 'SOFT' 60;
 }
 
 .fields {

@@ -299,7 +299,7 @@ async function copyBoardLink() {
         >
           <div class="col-head">
             <h2>{{ STATUS_LABEL[status] }}</h2>
-            <span class="muted small">{{ columns[status].length }}</span>
+            <span class="count">{{ columns[status].length }}</span>
             <button class="btn ghost add" :aria-label="`Novo card em ${STATUS_LABEL[status]}`" @click="adding = status">
               +
             </button>
@@ -329,7 +329,7 @@ async function copyBoardLink() {
               >
                 <p class="card-title">{{ card.title }}</p>
                 <div class="meta">
-                  <span class="muted">#{{ card.id }}</span>
+                  <span class="id">#{{ card.id }}</span>
                   <span v-if="card.priority <= 1" class="chip" :class="`p${card.priority}`">P{{ card.priority }}</span>
                   <span v-if="card.due_date" class="chip" :class="{ late: card.status !== 'done' && isOverdue(card.due_date) }">
                     {{ formatDate(card.due_date) }}
@@ -422,8 +422,8 @@ async function copyBoardLink() {
 .head h1 {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 22px;
+  gap: 10px;
+  font-size: 30px;
 }
 
 .head p {
@@ -457,6 +457,7 @@ async function copyBoardLink() {
 
 .tabs button.active {
   color: var(--text);
+  font-weight: 600;
   border-bottom-color: var(--accent);
 }
 
@@ -472,15 +473,14 @@ async function copyBoardLink() {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 200px;
-  padding: 10px;
+  min-height: 220px;
+  padding: 12px 10px 10px;
   border-radius: var(--radius);
-  background: var(--surface-2);
-  border: 1px dashed transparent;
+  border: 1px solid rgb(38 34 30 / 6%);
 }
 
 .column.over {
-  border-color: var(--accent);
+  border: 1px dashed var(--text);
 }
 
 .col-head {
@@ -490,8 +490,12 @@ async function copyBoardLink() {
 }
 
 .col-head h2 {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 17px;
+}
+
+.count {
+  font: 12px/1 var(--font-mono);
+  color: var(--muted);
 }
 
 .add {
@@ -509,15 +513,19 @@ async function copyBoardLink() {
 
 .card {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid rgb(38 34 30 / 10%);
   box-shadow: var(--shadow);
   cursor: grab;
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out;
 }
 
 .card:hover {
-  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
 }
 
 .card.dragging {
@@ -526,15 +534,22 @@ async function copyBoardLink() {
 
 .card-title {
   margin: 0 0 6px;
-  font-weight: 500;
+  font-weight: 470;
   overflow-wrap: anywhere;
 }
 
 .meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
   font-size: 12px;
+}
+
+.id {
+  margin-right: 2px;
+  font: 11.5px var(--font-mono);
+  color: var(--muted);
 }
 
 .tiny {

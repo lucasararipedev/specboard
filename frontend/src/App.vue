@@ -13,7 +13,7 @@ function saveToken() {
 <template>
   <header class="topbar">
     <RouterLink to="/" class="brand">
-      <img src="/favicon.svg" alt="" width="22" height="22" />
+      <img src="/favicon.svg" alt="" width="26" height="26" />
       Specboard
     </RouterLink>
     <nav>
@@ -38,7 +38,8 @@ function saveToken() {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
-  background: var(--surface);
+  background: rgb(243 238 228 / 92%);
+  backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -48,8 +49,10 @@ function saveToken() {
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 650;
+  gap: 9px;
+  font: 500 19px var(--font-serif);
+  font-variation-settings: 'SOFT' 60;
+  letter-spacing: -0.01em;
   color: var(--text);
   text-decoration: none;
 }

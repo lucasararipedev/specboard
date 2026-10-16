@@ -1,55 +1,46 @@
-:root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --surface-2: #eef0f4;
-  --border: #dde1e8;
-  --text: #1c2230;
-  --muted: #667085;
-  --accent: #4f46e5;
-  --accent-soft: #e8e7fd;
-  --on-accent: #ffffff;
-  /* Fundo pastel de cada coluna do board. */
-  --col-backlog: #eceef5;
-  --col-todo: #e3edfd;
-  --col-doing: #fdf3d3;
-  --col-blocked: #fce4e4;
-  --col-done: #def4e6;
-  --danger: #d92d20;
-  --danger-soft: #fdecea;
-  --warn: #b54708;
-  --warn-soft: #fef0e1;
-  --ok: #067647;
-  --ok-soft: #e3f5ec;
-  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
-  --radius: 10px;
-  color-scheme: light;
-}
+/*
+ * Identidade: caderno de papel. Sempre claro, tons quentes, tinta quase preta e um único acento
+ * vermelhão (o marcador do ícone). Títulos em serifa (Fraunces), texto em Instrument Sans,
+ * números e ids em JetBrains Mono. Sem gradiente, sem sombra borrada, sem índigo.
+ */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource-variable/jetbrains-mono';
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1218;
-    --surface: #171b24;
-    --surface-2: #1f2430;
-    --border: #2c3341;
-    --text: #e6e9ef;
-    --muted: #98a1b3;
-    --accent: #8b85ff;
-    --accent-soft: #2a2856;
-    --on-accent: #12102a;
-    --col-backlog: #1c202a;
-    --col-todo: #17223a;
-    --col-doing: #2b2616;
-    --col-blocked: #311b1e;
-    --col-done: #15291e;
-    --danger: #ff6b5f;
-    --danger-soft: #3a1d1b;
-    --warn: #f5a35c;
-    --warn-soft: #3a2a17;
-    --ok: #4fd18b;
-    --ok-soft: #173326;
-    --shadow: 0 1px 2px rgb(0 0 0 / 40%);
-    color-scheme: dark;
-  }
+:root {
+  --bg: #f3eee4; /* papel */
+  --surface: #fbf9f4; /* folha */
+  --surface-2: #ebe5d8;
+  --border: #ddd4c3; /* pauta */
+  --border-strong: #c9bda6;
+  --text: #26221e; /* tinta */
+  --muted: #7a7064; /* lápis */
+  --accent: #c8462b; /* vermelhão */
+  --accent-soft: #f6dfd5;
+  --on-accent: #ffffff;
+  --danger: #b4361f;
+  --danger-soft: #f6dcd4;
+  --warn: #8a5d0c;
+  --warn-soft: #f4e4bf;
+  --ok: #4f6b3a;
+  --ok-soft: #e1e8d4;
+
+  /* Fundo de cada coluna do board: pastéis apagados, como papel colorido. */
+  --col-backlog: #ebe5d8;
+  --col-todo: #e0e6e3;
+  --col-doing: #f3e5bd;
+  --col-blocked: #f1d9ce;
+  --col-done: #dfe6d1;
+
+  --font-serif: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, monospace;
+
+  /* Sombra "de papel": uma linha firme embaixo, não um halo borrado. */
+  --shadow: 0 1px 0 var(--border-strong);
+  --shadow-lift: 0 3px 0 var(--border-strong);
+  --radius: 8px;
+  color-scheme: light;
 }
 
 * {
@@ -58,20 +49,42 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Grão leve de papel. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .15 0 0 0 0 .13 0 0 0 0 .1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   color: var(--text);
-  font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font: 15px/1.55 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
 }
 
 a {
   color: var(--accent);
+  text-underline-offset: 2px;
 }
 
 h1,
 h2,
 h3 {
-  line-height: 1.25;
   margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-variation-settings: 'SOFT' 60;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+code,
+pre,
+.mono {
+  font-family: var(--font-mono);
+}
+
+code {
+  font-size: 0.88em;
 }
 
 button,
@@ -88,21 +101,28 @@ textarea {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--surface);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a69b8c;
 }
 
 textarea {
   resize: vertical;
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 13.5px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
+  outline: none;
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 label {
@@ -117,27 +137,39 @@ label {
   align-items: center;
   gap: 6px;
   padding: 7px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
   background: var(--surface);
+  box-shadow: var(--shadow);
   cursor: pointer;
   text-decoration: none;
   color: var(--text);
   white-space: nowrap;
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background 0.15s ease-out;
 }
 
 .btn:hover {
-  background: var(--surface-2);
+  background: #fff;
 }
 
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Primário é tinta, não cor de marca. */
 .btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  box-shadow: 0 1px 0 #000;
 }
 
 .btn.primary:hover {
-  filter: brightness(1.08);
+  background: #3a342e;
 }
 
 .btn.danger {
@@ -147,10 +179,15 @@ label {
 .btn.ghost {
   border-color: transparent;
   background: transparent;
+  box-shadow: none;
+}
+
+.btn.ghost:hover {
+  background: var(--surface-2);
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: default;
 }
 
@@ -164,38 +201,42 @@ label {
 
 .chip {
   display: inline-block;
-  padding: 1px 7px;
-  border-radius: 999px;
-  font-size: 12px;
-  background: var(--surface-2);
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: 11.5px/1.7 var(--font-mono);
   color: var(--muted);
   white-space: nowrap;
 }
 
 .chip.p0 {
-  background: var(--danger-soft);
-  color: var(--danger);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
 }
 
 .chip.p1 {
-  background: var(--warn-soft);
-  color: var(--warn);
+  border-color: #e3b9a8;
+  background: var(--accent-soft);
+  color: var(--danger);
 }
 
 .chip.late {
+  border-color: #e3b9a8;
   background: var(--danger-soft);
   color: var(--danger);
 }
 
 .chip.ai {
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-color: transparent;
+  background: var(--text);
+  color: var(--bg);
 }
 
 .page {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 32px 16px 56px;
 }
 
 .panel {
@@ -207,7 +248,7 @@ label {
 
 .error {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--danger-soft);
   color: var(--danger);
 }
@@ -220,6 +261,7 @@ label {
 
 .markdown {
   overflow-wrap: anywhere;
+  line-height: 1.65;
 }
 
 .markdown > :first-child {
@@ -227,35 +269,33 @@ label {
 }
 
 .markdown h1 {
-  font-size: 1.6em;
+  font-size: 1.9em;
 }
 
 .markdown h2 {
-  font-size: 1.3em;
-  margin-top: 1.4em;
+  font-size: 1.35em;
+  margin-top: 1.6em;
 }
 
 .markdown h3 {
   font-size: 1.1em;
-  margin-top: 1.2em;
+  margin-top: 1.3em;
 }
 
 .markdown blockquote {
   margin: 0 0 1em;
-  padding: 2px 12px;
-  border-left: 3px solid var(--border);
+  padding: 2px 14px;
+  border-left: 2px solid var(--accent);
   color: var(--muted);
+  font-family: var(--font-serif);
+  font-style: italic;
 }
 
 .markdown pre {
-  padding: 12px;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border-radius: 6px;
   background: var(--surface-2);
   overflow-x: auto;
-}
-
-.markdown code {
-  font-size: 0.9em;
 }
 
 .markdown table {
@@ -266,4 +306,16 @@ label {
 .markdown td {
   border: 1px solid var(--border);
   padding: 4px 8px;
+}
+
+.markdown hr {
+  border: 0;
+  border-top: 1px dashed var(--border-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

@@ -1,4 +1,6 @@
-# Specboard
+<p align="center"><img src="docs/logo.svg" width="96" height="96" alt=""></p>
+
+<h1 align="center">Specboard</h1>
 
 **Kanban spec-first que a sua IA mantém por você.** Sobe com um `docker compose up`, você cola um prompt no
 Claude (ou ChatGPT, Gemini, Cursor…) e a partir daí ela registra tarefas, move status, guarda decisões na spec
