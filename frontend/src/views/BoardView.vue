@@ -293,6 +293,7 @@ async function copyBoardLink() {
           :key="status"
           class="column"
           :class="{ over: dropAt?.status === status }"
+          :style="{ background: `var(--col-${status})` }"
           @dragover="onDragOver(status, $event)"
           @drop.prevent="onDrop(status)"
         >

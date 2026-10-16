@@ -8,6 +8,12 @@
   --accent: #4f46e5;
   --accent-soft: #e8e7fd;
   --on-accent: #ffffff;
+  /* Fundo pastel de cada coluna do board. */
+  --col-backlog: #eceef5;
+  --col-todo: #e3edfd;
+  --col-doing: #fdf3d3;
+  --col-blocked: #fce4e4;
+  --col-done: #def4e6;
   --danger: #d92d20;
   --danger-soft: #fdecea;
   --warn: #b54708;
@@ -30,6 +36,11 @@
     --accent: #8b85ff;
     --accent-soft: #2a2856;
     --on-accent: #12102a;
+    --col-backlog: #1c202a;
+    --col-todo: #17223a;
+    --col-doing: #2b2616;
+    --col-blocked: #311b1e;
+    --col-done: #15291e;
     --danger: #ff6b5f;
     --danger-soft: #3a1d1b;
     --warn: #f5a35c;
