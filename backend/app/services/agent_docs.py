@@ -16,7 +16,7 @@ def agent_prompt(settings: Settings) -> str:
     )
     return f"""Quero que você mantenha meus projetos organizados usando o Specboard, um kanban spec-first que roda na minha máquina.
 
-Endereço: {url}
+Endereço: {url} (meus projetos ficam em {url}/projetos)
 {auth}
 1. Leia agora o manual da API em {url}/llms.txt (com curl ou sua ferramenta de requisição HTTP). Ele tem as regras e os endpoints.
 2. Depois rode GET {url}/api/briefing e me diga em poucas linhas o que está em andamento, o que travou e qual deve ser minha próxima prioridade.
@@ -28,7 +28,7 @@ Endereço: {url}
    - quando faltar contexto para planejar ou decidir, registre perguntas para eu responder no board (com opções, se der) em vez de supor, e use minhas respostas assim que eu responder;
    - sempre me mande o link do board ou do card que você criou ou mudou;
    - identifique-se com o header X-Actor (ex.: claude, chatgpt, gemini).
-4. Se você tem memória persistente, salve estas regras e o endereço lá para seguir nas próximas conversas (Claude Code: ~/.claude/CLAUDE.md; Cursor: Rules; ChatGPT: Memória ou Instruções personalizadas; Gemini: Gem ou instruções salvas).
+4. Se você tem memória persistente ou um arquivo de instruções, salve um resumo destas regras e o endereço lá para seguir nas próximas conversas sem eu precisar colar este texto de novo.
 5. Se você não consegue fazer requisições HTTP, me avise e me passe os comandos curl prontos para eu rodar. Se a API não responder, peça para eu rodar `docker compose up -d` na pasta do Specboard.
 """
 
@@ -50,7 +50,7 @@ registra tarefas, move status, anota o que foi feito e lembra o usuário das pri
 acompanha pelo navegador e também pode mexer lá.
 
 - API: {url}/api
-- Interface: {url} (board de cada projeto em {url}/p/<slug>)
+- Interface: {url}/projetos (board de cada projeto em {url}/p/<slug>)
 - Docs interativas (OpenAPI): {url}/docs
 - {auth_note}
 

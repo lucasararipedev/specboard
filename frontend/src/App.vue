@@ -17,8 +17,8 @@ function saveToken() {
       Specboard
     </RouterLink>
     <nav>
-      <RouterLink to="/" class="btn ghost">Projetos</RouterLink>
-      <RouterLink to="/conectar" class="btn ghost">Conectar IA</RouterLink>
+      <RouterLink to="/" class="btn ghost">Início</RouterLink>
+      <RouterLink to="/projetos" class="btn ghost">Projetos</RouterLink>
     </nav>
   </header>
 

@@ -2,9 +2,10 @@
 
 <h1 align="center">Specboard</h1>
 
-**Kanban spec-first que a sua IA mantém por você.** Sobe com um `docker compose up`, você cola um prompt no
-Claude (ou ChatGPT, Gemini, Cursor…) e a partir daí ela registra tarefas, move status, guarda decisões na spec
-e te lembra das prioridades no começo de cada sessão, sempre com o link do card.
+**Kanban spec-first que a sua IA mantém por você.** Sobe com um `docker compose up`, você cola um prompt na
+sua IA (Claude, ChatGPT, Gemini, Cursor, Codex…, o mesmo texto para todas) e a partir daí ela registra
+tarefas, move status, guarda decisões na spec e te lembra das prioridades no começo de cada sessão, sempre com
+o link do card. Funciona como memória de longo prazo da IA, entre sessões e entre projetos.
 
 Feito para devs que querem ser mais organizados e não depender de PO desorganizado para saber o que fazer.
 
@@ -34,16 +35,21 @@ IA:   "Você tem o bug do login em andamento há 3 dias e o Stripe é o próximo
 Precisa só de Docker.
 
 ```bash
-git clone <url-deste-repo> specboard && cd specboard
+git clone https://github.com/lucasararipedev/specboard
+cd specboard
 docker compose up -d          # ou: make up
 ```
 
-1. Abra http://localhost:8787
-2. Vá em **Conectar IA**, copie o prompt e cole na sua IA (o mesmo texto está em [PROMPT.md](PROMPT.md)).
-3. Peça: *"crie um projeto no Specboard pro que estou fazendo e registre os próximos passos"*.
+1. Abra http://localhost:8787.
+2. Na página inicial, clique em **Copiar prompt** (ou selecione o texto e copie) e cole na sua IA. É um texto
+   só para qualquer IA, o mesmo de [PROMPT.md](PROMPT.md). Ela lê o manual, salva as regras na memória dela e
+   começa a cuidar do board.
+3. Peça: *"crie um projeto no Specboard pro que estou fazendo, escreva uma spec curta e registre os próximos
+   passos"*.
+4. Acompanhe em **Projetos** (http://localhost:8787/projetos). A tela se atualiza sozinha enquanto a IA trabalha.
 
-Usa Claude Code? Cole também o trecho de memória no seu `~/.claude/CLAUDE.md` e, se quiser, o hook que injeta o
-briefing em toda sessão nova. Passo a passo para cada IA em [docs/conectar-ia.md](docs/conectar-ia.md).
+IA no navegador (ChatGPT, claude.ai) não alcança o `localhost`; veja as saídas em
+[docs/conectar-ia.md](docs/conectar-ia.md).
 
 ## Configuração
 
@@ -103,15 +109,16 @@ backend/          FastAPI + SQLAlchemy + SQLite (Python 3.12)
   app/
     main.py         cria a app, registra rotas, serve o front buildado
     config.py       variáveis SPECBOARD_*
-    models.py       Project, Card, Activity
+    models.py       Project, Card, Question, Activity
     schemas.py      contratos da API (Pydantic)
-    api/            rotas: projects, cards, activity, agent (briefing, busca, export, llms.txt, prompt)
-    services/       briefing (lembretes), agent_docs (prompt e manual da IA), serialize (respostas com url)
+    api/            rotas: projects, cards, questions, activity, agent (briefing, busca, export, llms.txt, prompt)
+    services/       briefing (lembretes), agent_docs (prompt e manual da IA), questions (perguntas iniciais),
+                    serialize (respostas com url)
   tests/          pytest
 frontend/         Vue 3 + Vite + TypeScript + Vue Router
-  src/views/        Projetos, Board (kanban, spec, atividade), Conectar IA
-  src/components/   CardModal, MarkdownView
-docs/             conectar-ia.md (Claude Code, Cursor, ChatGPT…)
+  src/views/        Início (landing com o prompt), Projetos, Board (kanban, spec, perguntas, atividade)
+  src/components/   CardModal, CopyBlock, MarkdownView, QuestionsPanel
+docs/             conectar-ia.md (o prompt, IAs no navegador, dúvidas)
 spec.md           a spec deste projeto: problema, escopo da v1, roadmap, decisões
 PROMPT.md         o prompt padrão (um teste garante que bate com o servido pela API)
 Dockerfile        imagem única: build do front + API

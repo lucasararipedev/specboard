@@ -75,7 +75,7 @@ watch(showArchived, load)
     <div v-else-if="!projects.length" class="panel empty">
       <h2>Nenhum projeto ainda</h2>
       <p>
-        O jeito mais rápido é <RouterLink to="/conectar">copiar o prompt</RouterLink> para a sua IA e pedir:
+        O jeito mais rápido é <RouterLink to="/#prompt">copiar o prompt</RouterLink> para a sua IA e pedir:
         <em>"crie um projeto pro que estou fazendo e registre o que falta"</em>.
       </p>
     </div>

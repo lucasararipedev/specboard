@@ -124,7 +124,7 @@ def build_briefing(db: Session, settings: Settings, slug: str | None = None, now
     if slug:
         query = select(Project).where(Project.slug == slug)
     projects = [_project_briefing(db, settings, p, now, now.date()) for p in db.scalars(query)]
-    return {"generated_at": now.isoformat(), "board_url": settings.public_url, "projects": projects}
+    return {"generated_at": now.isoformat(), "board_url": f"{settings.public_url}/projetos", "projects": projects}
 
 
 def _line(card: dict) -> str:

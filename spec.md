@@ -85,15 +85,19 @@ com 2 a 4 opções) e o usuário responde na aba **Perguntas** do projeto (`/p/<
 
 ### 5.5 Feito para IA
 - `/llms.txt`: manual com regras, conceitos, endpoints e exemplos, com a URL da instância.
-- `/api/agent/prompt` e `PROMPT.md`: o prompt padrão para colar na IA (um teste garante que os dois batem).
+- `/api/agent/prompt` e `PROMPT.md`: o prompt padrão para colar na IA, **um texto só para qualquer IA** (um
+  teste garante que os dois batem). Ele pede para a IA salvar as regras na própria memória.
 - Busca (`/api/search`) para a IA evitar card duplicado.
 - Toda resposta de projeto e card traz `url` pronta para mandar ao usuário.
 - OpenAPI em `/docs`.
 
 ### 5.6 Interface (Vue 3)
-Lista de projetos, board, aba da spec (ver e editar), aba de atividade, modal do card com histórico e a
-página "Conectar IA" com o prompt e o trecho para o `CLAUDE.md`. O board consulta a API a cada 5 s para
-mostrar o que a IA mudou. Tema claro e escuro.
+- **Página inicial (`/`)**: landing do projeto open source. Explica a proposta e os ganhos (memória de longo
+  prazo entre sessões e projetos, spec first, perguntas, lembretes, troca de IA), traz os 3 passos para
+  começar (subir com Docker, copiar o prompt, abrir os projetos) com botões de copiar, exemplo de uso e dúvidas.
+- **Projetos (`/projetos`)**, board, aba da spec (ver e editar), aba de perguntas, aba de atividade e modal do
+  card com histórico. `/conectar` (página antiga) redireciona para o prompt na página inicial.
+- O board consulta a API a cada 5 s para mostrar o que a IA mudou. Sempre tema claro (visual de caderno).
 
 ### 5.7 Segurança
 Porta presa em `127.0.0.1` por padrão. `SPECBOARD_TOKEN` opcional exige `Authorization: Bearer` em toda a API
@@ -123,8 +127,8 @@ customizáveis, subtarefas.
 - Escolher a IA por tarefa (uma barata para classificar, uma melhor para extrair).
 
 ### Outras ideias
-- **Hook de início de sessão** pronto para o Claude Code (o briefing entra no contexto sozinho). Já documentado
-  em `docs/conectar-ia.md`; avaliar um instalador.
+- **Hook de início de sessão** para ferramentas que suportam (ex.: Claude Code): o briefing entra no contexto
+  sozinho. Avaliar um instalador opcional, sem voltar às instruções por IA na página inicial.
 - Servidor MCP, para IAs sem shell (Claude Desktop, claude.ai com conector) usarem sem `curl`.
 - Lembretes ativos fora da IA: resumo diário por e-mail, Telegram ou notificação do sistema.
 - GitHub: commit/PR com `closes #12` fecha o card; link de PR no card.
@@ -143,6 +147,10 @@ customizáveis, subtarefas.
 - **Um container** servindo front e API: uma porta, e o link que a IA manda é o mesmo que o humano abre.
 - **Status fixos** em inglês na API (vocabulário estável para qualquer IA), rótulos em português na interface.
 - **Sem IA dentro na v1**: a IA de fora já resolve o fluxo principal e evita pedir chave logo de cara.
+- **Um prompt só, para qualquer IA**: sem trechos por ferramenta (CLAUDE.md, Rules…). Menos coisa para o
+  usuário escolher; o próprio prompt pede para a IA salvar as regras onde ela guarda memória.
+- **Landing dentro do app** em `/`: quem sobe o Specboard cai na explicação e no prompt; projetos em `/projetos`
+  (o briefing e o manual apontam para lá).
 - Licença MIT.
 
 ## 9. Perguntas em aberto

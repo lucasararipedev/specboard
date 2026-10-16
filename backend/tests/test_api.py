@@ -134,3 +134,11 @@ def test_datetimes_are_utc(client, project):
 def test_prompt_md_matches_default_prompt():
     """PROMPT.md (para copiar do GitHub) tem que ser igual ao prompt servido pela instância padrão."""
     assert (REPO_ROOT / "PROMPT.md").read_text() == agent_prompt(Settings())
+
+
+def test_prompt_is_one_text_for_any_ai(client):
+    """Um prompt só para qualquer IA, apontando para a lista de projetos (a raiz é a página inicial)."""
+    prompt = client.get("/api/agent/prompt").text
+    assert "/projetos" in prompt
+    assert not any(tool in prompt for tool in ("CLAUDE.md", "Cursor", "Gem "))
+    assert client.get("/api/briefing", params={"format": "json"}).json()["board_url"].endswith("/projetos")

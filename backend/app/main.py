@@ -54,5 +54,5 @@ def _serve_frontend(app: FastAPI, static: Path) -> None:
         file = (root / path).resolve()
         if path and file.is_file() and file.is_relative_to(root):
             return FileResponse(file)
-        # Rotas do Vue Router (/p/<slug>, /conectar) caem no index.html.
+        # Rotas do Vue Router (/, /projetos, /p/<slug>) caem no index.html.
         return FileResponse(root / "index.html")
