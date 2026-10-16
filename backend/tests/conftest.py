@@ -9,7 +9,7 @@ from app.main import create_app
 def make_client(tmp_path):
     def _make(**overrides) -> TestClient:
         settings = Settings(database_url=f"sqlite:///{tmp_path}/test.db", **overrides)
-        return TestClient(create_app(settings), headers={"X-Actor": "claude"})
+        return TestClient(create_app(settings), base_url="http://localhost", headers={"X-Actor": "claude"})
 
     return _make
 

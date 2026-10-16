@@ -11,6 +11,7 @@ services:
       SPECBOARD_PUBLIC_URL: ${SPECBOARD_PUBLIC_URL:-http://localhost:8787}
       SPECBOARD_TOKEN: ${SPECBOARD_TOKEN:-}
       SPECBOARD_STALE_DAYS: ${SPECBOARD_STALE_DAYS:-3}
+      SPECBOARD_ALLOWED_HOSTS: ${SPECBOARD_ALLOWED_HOSTS:-}
     volumes:
       - specboard-data:/data
     restart: unless-stopped

@@ -106,6 +106,15 @@ Porta presa em `127.0.0.1` por padrão. `SPECBOARD_TOKEN` opcional exige `Author
 (menos health, manual e prompt, que não têm dados). O prompt nunca inclui o token. Markdown renderizado é
 sanitizado (DOMPurify), porque a IA pode trazer conteúdo da web.
 
+- **Sem CORS**: front e API dividem a origem (em dev o Vite faz proxy) e a IA usa `curl`. Com CORS aberto, qualquer
+  site aberto no navegador do usuário leria e mudaria os dados em `localhost`.
+- **Hosts permitidos**: `localhost`, `127.0.0.1`, o host da `SPECBOARD_PUBLIC_URL` e `SPECBOARD_ALLOWED_HOSTS`;
+  outros recebem 400 (contra DNS rebinding).
+- **Cabeçalhos**: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` em tudo; CSP na interface
+  (só `self`, imagens externas liberadas para a spec citar prints).
+- **Privacidade (LGPD)**: sem telemetria nem chamadas a terceiros; o usuário é o controlador dos dados; export e
+  exclusão pela API. O que a IA lê vai para o provedor dela (documentado no README).
+
 ### 5.8 Infra
 Imagem única (build do Vue + FastAPI servindo front e API na porta 8787), volume para o SQLite,
 `docker-compose.dev.yml` com hot reload, testes de API com pytest, `make backup` via export.

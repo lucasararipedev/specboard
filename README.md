@@ -74,8 +74,32 @@ Tudo opcional. Para mudar, `cp .env.example .env`, edite e rode `docker compose 
 | `SPECBOARD_BIND` | `127.0.0.1` | Interface de rede; `0.0.0.0` abre na rede local |
 | `SPECBOARD_TOKEN` | vazio | Se definido, a API exige `Authorization: Bearer <token>` |
 | `SPECBOARD_STALE_DAYS` | `3` | Dias sem atualização para um card em andamento virar lembrete |
+| `SPECBOARD_ALLOWED_HOSTS` | vazio | Outros nomes ou IPs aceitos além de `localhost` e do host da `SPECBOARD_PUBLIC_URL` (ex.: `192.168.0.10`) |
 
-Por padrão só a sua máquina acessa. Se abrir na rede ou num túnel, **defina um token** (`openssl rand -hex 24`).
+Por padrão só a sua máquina acessa. Se abrir na rede ou num túnel, **defina um token** (`openssl rand -hex 24`) e
+acesse pelo endereço da `SPECBOARD_PUBLIC_URL` (ou liste o IP em `SPECBOARD_ALLOWED_HOSTS`): outros nomes são
+recusados.
+
+## Privacidade, LGPD e segurança
+
+- **Nada sai da sua máquina por causa do Specboard.** Sem conta, sem telemetria, sem analytics, sem chamadas a
+  serviços de terceiros: fontes, vídeo e ícones são servidos localmente. Os dados ficam num arquivo SQLite no
+  volume Docker `specboard-data`.
+- **Você é o controlador dos dados.** O projeto (e quem o mantém) não recebe nem armazena nada do que você
+  registra.
+- **O que vai para a sua IA segue as regras dela.** Cards, specs e respostas que a IA lê ou escreve passam pelo
+  provedor que você escolheu (Anthropic, OpenAI, Google…), conforme a política de privacidade dele. Evite colocar
+  dados pessoais de terceiros (clientes, usuários) nos cards; se precisar, trate como faria em qualquer
+  ferramenta de trabalho.
+- **Portabilidade e exclusão:** `GET /api/export` (ou `make backup`) exporta tudo em JSON; apagar um card ou
+  projeto remove do banco, e `docker compose down -v` apaga tudo.
+- **Proteções:** porta presa em `127.0.0.1`; sem CORS (um site aberto no seu navegador não consegue ler nem mudar
+  os dados); hosts desconhecidos recusados (contra *DNS rebinding*); token opcional comparado em tempo
+  constante e nunca incluído no prompt; Markdown sanitizado com DOMPurify; cabeçalhos de segurança e CSP na
+  interface; container sem root.
+
+Achou uma falha de segurança? Abra uma [issue](https://github.com/lucasararipedev/specboard/issues) sem detalhes
+do ataque e peça um contato privado, ou use *Report a vulnerability* na aba Security do repositório.
 
 ## Dados e backup
 

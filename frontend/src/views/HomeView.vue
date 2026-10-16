@@ -88,7 +88,7 @@ const faq = [
   },
   {
     q: 'Onde ficam meus dados?',
-    a: 'Num arquivo SQLite na sua máquina. Sem conta, sem nuvem, sem chave de IA. Backup com make backup (exporta tudo em JSON).',
+    a: 'Num arquivo SQLite na sua máquina. Sem conta, sem nuvem, sem telemetria: o Specboard não manda nada para ninguém. O que a sua IA lê segue a política de privacidade do provedor dela. Backup com make backup (exporta tudo em JSON).',
   },
   {
     q: 'Quanto custa?',

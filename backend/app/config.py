@@ -2,6 +2,7 @@
 
 import os
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
 
 @dataclass(frozen=True)
@@ -16,6 +17,13 @@ class Settings:
     static_dir: str | None = None
     # Card em "doing" ou "blocked" sem atualização há mais que isso aparece como parado no briefing.
     stale_days: int = 3
+    # Hosts aceitos além de localhost/127.0.0.1 e do host da public_url (ex.: IP na rede local).
+    # Barra DNS rebinding: um site malicioso não consegue falar com a API usando outro nome.
+    allowed_hosts: tuple[str, ...] = ()
+
+    def hosts(self) -> list[str]:
+        public = urlsplit(self.public_url).hostname or "localhost"
+        return sorted({"localhost", "127.0.0.1", public, *self.allowed_hosts})
 
 
 def load_settings() -> Settings:
@@ -25,4 +33,5 @@ def load_settings() -> Settings:
         api_token=os.getenv("SPECBOARD_TOKEN") or None,
         static_dir=os.getenv("SPECBOARD_STATIC_DIR") or None,
         stale_days=int(os.getenv("SPECBOARD_STALE_DAYS", str(Settings.stale_days))),
+        allowed_hosts=tuple(h.strip() for h in os.getenv("SPECBOARD_ALLOWED_HOSTS", "").split(",") if h.strip()),
     )

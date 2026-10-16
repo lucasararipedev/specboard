@@ -142,3 +142,39 @@ def test_prompt_is_one_text_for_any_ai(client):
     assert "/projetos" in prompt
     assert not any(tool in prompt for tool in ("CLAUDE.md", "Cursor", "Gem "))
     assert client.get("/api/briefing", params={"format": "json"}).json()["board_url"].endswith("/projetos")
+
+
+def test_other_sites_cannot_use_the_api(client):
+    """Sem CORS: um site aberto no navegador não lê nem muda os dados em localhost."""
+    evil = {"Origin": "https://site-malicioso.example"}
+    assert "access-control-allow-origin" not in client.get("/api/projects", headers=evil).headers
+    preflight = client.options(
+        "/api/projects", headers={**evil, "Access-Control-Request-Method": "POST"}
+    )
+    assert "access-control-allow-origin" not in preflight.headers
+
+
+def test_unknown_host_is_rejected(make_client):
+    """DNS rebinding: só localhost, 127.0.0.1, o host da public_url e SPECBOARD_ALLOWED_HOSTS."""
+    client = make_client(public_url="https://board.exemplo.dev", allowed_hosts=("192.168.0.10",))
+    assert client.get("/api/health", headers={"Host": "rebind.site-malicioso.example"}).status_code == 400
+    for host in ("localhost:8787", "127.0.0.1:8787", "board.exemplo.dev", "192.168.0.10:8787"):
+        assert client.get("/api/health", headers={"Host": host}).status_code == 200
+
+
+def test_security_headers(client):
+    headers = client.get("/api/health").headers
+    assert headers["x-content-type-options"] == "nosniff"
+    assert headers["x-frame-options"] == "DENY"
+    assert headers["referrer-policy"] == "no-referrer"
+
+
+def test_interface_has_csp(make_client, tmp_path):
+    static = tmp_path / "static"
+    static.mkdir()
+    (static / "index.html").write_text("<!doctype html><div id=app></div>")
+    client = make_client(static_dir=str(static))
+    csp = client.get("/projetos").headers["content-security-policy"]
+    assert "frame-ancestors 'none'" in csp and "script-src 'self'" in csp
+    assert client.get("/../../etc/passwd").status_code in (200, 404)
+    assert "root:" not in client.get("/..%2F..%2Fetc%2Fpasswd").text
