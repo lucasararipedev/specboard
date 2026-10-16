@@ -1,0 +1,258 @@
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --border: #dde1e8;
+  --text: #1c2230;
+  --muted: #667085;
+  --accent: #4f46e5;
+  --accent-soft: #e8e7fd;
+  --on-accent: #ffffff;
+  --danger: #d92d20;
+  --danger-soft: #fdecea;
+  --warn: #b54708;
+  --warn-soft: #fef0e1;
+  --ok: #067647;
+  --ok-soft: #e3f5ec;
+  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
+  --radius: 10px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1218;
+    --surface: #171b24;
+    --surface-2: #1f2430;
+    --border: #2c3341;
+    --text: #e6e9ef;
+    --muted: #98a1b3;
+    --accent: #8b85ff;
+    --accent-soft: #2a2856;
+    --on-accent: #12102a;
+    --danger: #ff6b5f;
+    --danger-soft: #3a1d1b;
+    --warn: #f5a35c;
+    --warn-soft: #3a2a17;
+    --ok: #4fd18b;
+    --ok-soft: #173326;
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+a {
+  color: var(--accent);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+textarea {
+  resize: vertical;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 13.5px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: var(--surface-2);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn.primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn.danger {
+  color: var(--danger);
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 13px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--surface-2);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chip.p0 {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.chip.p1 {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.chip.late {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.chip.ai {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.error {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.markdown {
+  overflow-wrap: anywhere;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown h1 {
+  font-size: 1.6em;
+}
+
+.markdown h2 {
+  font-size: 1.3em;
+  margin-top: 1.4em;
+}
+
+.markdown h3 {
+  font-size: 1.1em;
+  margin-top: 1.2em;
+}
+
+.markdown blockquote {
+  margin: 0 0 1em;
+  padding: 2px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+
+.markdown pre {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  overflow-x: auto;
+}
+
+.markdown code {
+  font-size: 0.9em;
+}
+
+.markdown table {
+  border-collapse: collapse;
+}
+
+.markdown th,
+.markdown td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+}

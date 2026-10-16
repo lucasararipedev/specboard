@@ -1,0 +1,19 @@
+# Uso: docker compose up -d   →   http://localhost:8787
+# Configuração opcional no .env (veja .env.example).
+services:
+  specboard:
+    build: .
+    image: specboard:local
+    ports:
+      # Só a sua máquina acessa (127.0.0.1). Para expor na rede, mude SPECBOARD_BIND e defina SPECBOARD_TOKEN.
+      - "${SPECBOARD_BIND:-127.0.0.1}:${SPECBOARD_PORT:-8787}:8787"
+    environment:
+      SPECBOARD_PUBLIC_URL: ${SPECBOARD_PUBLIC_URL:-http://localhost:8787}
+      SPECBOARD_TOKEN: ${SPECBOARD_TOKEN:-}
+      SPECBOARD_STALE_DAYS: ${SPECBOARD_STALE_DAYS:-3}
+    volumes:
+      - specboard-data:/data
+    restart: unless-stopped
+
+volumes:
+  specboard-data:

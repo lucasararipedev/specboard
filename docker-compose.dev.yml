@@ -1,0 +1,33 @@
+# Desenvolvimento com hot reload: make dev   →   front em http://localhost:5173, API em http://localhost:8787
+services:
+  api:
+    image: python:3.12-slim
+    working_dir: /repo/backend
+    command: sh -c "pip install -q --root-user-action=ignore -r requirements-dev.txt && uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8787 --reload"
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      SPECBOARD_DATABASE_URL: sqlite:////data/specboard.db
+      SPECBOARD_PUBLIC_URL: http://localhost:5173
+    volumes:
+      - ./:/repo
+      - specboard-dev-data:/data
+    ports:
+      - "127.0.0.1:8787:8787"
+
+  web:
+    image: node:22-alpine
+    working_dir: /web
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev"
+    environment:
+      VITE_API_TARGET: http://api:8787
+    volumes:
+      - ./frontend:/web
+      - web-node-modules:/web/node_modules
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  specboard-dev-data:
+  web-node-modules:
