@@ -11,7 +11,7 @@ class Settings:
     database_url: str = "sqlite:///./data/specboard.db"
     # URL que a IA usa e repassa ao usuário nos links de board e card.
     public_url: str = "http://localhost:8787"
-    # Se definido, toda a API (menos health, guia e prompt) exige "Authorization: Bearer <token>".
+    # Se definido, toda a API e o /mcp (menos health, guia, prompt e instaladores) exigem "Authorization: Bearer <token>".
     api_token: str | None = None
     # Pasta com o build do front. No Docker o FastAPI serve o front e a API na mesma porta.
     static_dir: str | None = None

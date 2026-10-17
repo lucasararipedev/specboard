@@ -61,15 +61,15 @@ docker compose up -d          # ou: make up (já mostra o link no fim)
 Esqueceu o endereço? `make link` mostra o link e avisa se o app está fora do ar.
 
 1. Abra http://localhost:8787.
-2. Na página inicial, clique em **Copiar prompt** (ou selecione o texto e copie) e cole na sua IA. É um texto
-   só para qualquer IA, o mesmo de [PROMPT.md](PROMPT.md). Ela lê o manual, salva as regras na memória dela e
-   começa a cuidar do board.
+2. Conecte a sua IA, no passo 2 da página inicial:
+   - **Claude Code** (terminal, VS Code ou Cursor): um comando instala o plugin; veja
+     [Plugin do Claude Code](#plugin-do-claude-code).
+   - **Outra IA**: copie o prompt e cole na sua IA. É um texto só para qualquer uma, o mesmo de
+     [PROMPT.md](PROMPT.md). Ela lê o manual, salva as regras na memória dela e começa a cuidar do board.
+     Cursor e outras ferramentas com MCP também podem usar `http://localhost:8787/mcp`.
 3. Peça: *"crie um projeto no Specboard pro que estou fazendo, escreva uma spec curta e registre os próximos
    passos"*.
 4. Acompanhe em **Projetos** (http://localhost:8787/projetos). A tela se atualiza sozinha enquanto a IA trabalha.
-
-**Usa Claude Code?** No lugar do passo 2, instale o plugin (veja [Plugin do Claude Code](#plugin-do-claude-code)).
-Cursor e outras ferramentas com MCP usam `http://localhost:8787/mcp`.
 
 IA no navegador (ChatGPT, claude.ai) não alcança o `localhost`; veja as saídas em
 [docs/conectar-ia.md](docs/conectar-ia.md).
@@ -172,6 +172,9 @@ em `curl`. A referência completa (OpenAPI) está em http://localhost:8787/docs.
 | `GET/POST /api/sessions`, `PATCH/DELETE /api/sessions/<key>` | Chats ligados ao board (painel Agora) |
 | `GET/PUT /api/profile` | Nome e foto do usuário |
 | `GET /api/export` | Backup em JSON |
+| `POST /mcp` | MCP (Streamable HTTP): as mesmas ações como tools, mais o prompt `board` |
+| `GET /install/claude-code.sh`, `GET /install/claude-code.ps1` | Instalador do plugin do Claude Code |
+| `POST /api/hooks/claude-code` | Recebe os hooks do plugin (uso interno) |
 
 A IA se identifica com o header `X-Actor` (ex.: `claude`), e o histórico mostra quem fez o quê.
 
@@ -187,7 +190,7 @@ backend/requirements-dev.txt` e `uvicorn app.main:create_app --factory --port 87
 `backend/`; `npm install && npm run dev` dentro de `frontend/`.
 
 ```
-backend/          FastAPI + SQLAlchemy + SQLite (Python 3.12)
+backend/          FastAPI + SQLAlchemy + Alembic + SQLite + MCP (Python 3.12)
   app/
     main.py         cria a app, roda as migrações, registra rotas e o /mcp, serve o front buildado
     config.py       variáveis SPECBOARD_*
@@ -196,16 +199,17 @@ backend/          FastAPI + SQLAlchemy + SQLite (Python 3.12)
     mcp_server.py   servidor MCP (tools e o prompt board), sobre os mesmos serviços da API
     schemas.py      contratos da API (Pydantic)
     api/            rotas: projects, cards, questions, activity, sessions (e hooks), profile,
-                    agent (briefing, busca, export, llms.txt, prompt)
+                    agent (briefing, busca, export, llms.txt, prompt, instaladores do plugin)
     services/       regras de cada recurso (usadas pela API e pelo MCP), briefing (lembretes), agent_docs
-                    (prompt, manual, instruções do MCP e roteiro do /board), serialize (respostas com url)
+                    (prompt, manual, instruções do MCP e roteiro do /board), installer (scripts do plugin),
+                    serialize (respostas com url)
   tests/          pytest
 frontend/         Vue 3 + Vite + TypeScript + Vue Router
-  src/views/        Início (landing com o prompt), Projetos (com o painel Agora), Board (kanban com filtro por etiquetas,
+  src/views/        Início (landing com o plugin e o prompt), Projetos (com o painel Agora), Board (kanban com filtro por etiquetas,
                     spec, perguntas, atividade), Perfil
   src/components/   CardModal, LabelFilter, AgentsNow, QuestionsPanel, UserAvatar, CopyBlock, MarkdownView
-integrations/claude-code/  plugin do Claude Code (MCP, /board, hooks); o marketplace fica em .claude-plugin/
-docs/             conectar-ia.md (o prompt, IAs no navegador, dúvidas), demo.gif (README)
+integrations/claude-code/  plugin do Claude Code (MCP, /board, hooks, README); o marketplace fica em .claude-plugin/
+docs/             conectar-ia.md (plugin, MCP, o prompt, IAs no navegador, dúvidas), demo.gif (README)
 scripts/demo-video/  grava o vídeo de demonstração da página inicial
 spec.md           a spec deste projeto: problema, escopo da v1, roadmap, decisões
 PROMPT.md         o prompt padrão (um teste garante que bate com o servido pela API)

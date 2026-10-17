@@ -104,13 +104,14 @@ com 2 a 4 opções) e o usuário responde na aba **Perguntas** do projeto (`/p/<
 - **Página inicial (`/`)**: landing do projeto open source. Explica a proposta e os ganhos (memória de longo
   prazo entre sessões e projetos, spec first, perguntas, lembretes, troca de IA), traz os 3 passos para
   começar (subir com Docker, conectar a IA, abrir os projetos) com botões de copiar, exemplo de uso e dúvidas.
-  O passo de conectar tem duas abas: **Claude Code** (padrão e recomendada, em laranja do Claude: só o comando
-  do plugin, 5.6.3) e **Outra IA** (o prompt para copiar).
+  O passo de conectar tem duas abas: **Claude Code** (padrão e recomendada, em laranja do Claude: o comando do
+  instalador do plugin para o sistema de quem visita e o que o plugin libera, 5.6.3) e **Outra IA** (o prompt
+  para copiar).
   A primeira dobra deixa claro que a memória fica no board, não na IA: troque de IA e o board continua.
   No topo, ao lado do título, o vídeo de demonstração do board em uso (`frontend/public/demo.*`, gravado por
   `scripts/demo-video`); logo abaixo, os 3 passos deixam claro que quem mantém aquilo é a IA do usuário.
-- **Projetos (`/projetos`)** com o painel **Agora** no topo, board com filtro por etiquetas (5.6.1), aba da spec (ver e editar), aba de perguntas, aba de atividade e modal do
-  card com histórico. `/conectar` (página antiga) redireciona para o prompt na página inicial.
+- **Projetos (`/projetos`)** com o painel **Agora** no topo, board com filtro por etiquetas (5.6.1), aba da spec
+  (ver e editar), aba de perguntas, aba de atividade e modal do card com histórico. `/conectar` (página antiga) redireciona para o prompt na página inicial.
 - **Perfil (`/perfil`)**: nome e foto, que aparecem no topo e no histórico no lugar de "user".
 - O board consulta a API a cada 5 s para mostrar o que a IA mudou. Sempre tema claro (visual de caderno).
 
@@ -145,8 +146,9 @@ com 2 a 4 opções) e o usuário responde na aba **Perguntas** do projeto (`/p/<
   mudam endereço e token.
 
 ### 5.7 Segurança
-Porta presa em `127.0.0.1` por padrão. `SPECBOARD_TOKEN` opcional exige `Authorization: Bearer` em toda a API
-(menos health, manual e prompt, que não têm dados). O prompt nunca inclui o token. Markdown renderizado é
+Porta presa em `127.0.0.1` por padrão. `SPECBOARD_TOKEN` opcional exige `Authorization: Bearer` em toda a API e
+no `/mcp` (menos health, manual, prompt e instaladores do plugin, que não têm dados). Prompt e instaladores nunca
+incluem o token. Markdown renderizado é
 sanitizado (DOMPurify), porque a IA pode trazer conteúdo da web.
 
 - **Sem CORS**: front e API dividem a origem (em dev o Vite faz proxy) e a IA usa `curl`. Com CORS aberto, qualquer

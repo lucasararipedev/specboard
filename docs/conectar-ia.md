@@ -50,8 +50,8 @@ Para ligar um chat ao painel Agora fora do Claude Code, peça "liga este chat ao
 
 ## Um prompt para qualquer IA (sem MCP)
 
-1. Abra http://localhost:8787. A página inicial tem o prompt com o botão **Copiar prompt**.
-2. Copie (pelo botão ou selecionando o texto) e cole na sua IA: Claude Code, Cursor, Codex, Gemini CLI,
+1. Abra http://localhost:8787. No passo 2 da página inicial, aba **Outra IA**, está o prompt.
+2. Copie (pelo ícone no canto do bloco ou selecionando o texto) e cole na sua IA: Claude Code, Cursor, Codex, Gemini CLI,
    Windsurf, Copilot, Aider, ChatGPT… É o mesmo texto para todas.
 3. A IA lê o manual em `/llms.txt`, roda o briefing, salva as regras na memória ou no arquivo de instruções
    dela e passa a manter o board.

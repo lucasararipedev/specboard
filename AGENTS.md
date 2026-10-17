@@ -13,7 +13,9 @@ commit do código (escopo da v1 na seção 5, roadmap na 7, decisões na 8).
 - Backend: `backend/` (FastAPI, SQLAlchemy 2, Alembic, SQLite, Python 3.12). App criada por
   `app.main:create_app` (uvicorn com `--factory`). MCP em `app/mcp_server.py` (SDK `mcp` 2.x, `MCPServer`).
 - Plugin do Claude Code: `integrations/claude-code/` (MCP, comando `/board`, hooks); marketplace em
-  `.claude-plugin/marketplace.json`. Valide com `claude plugin validate --strict .`.
+  `.claude-plugin/marketplace.json`. Valide com `claude plugin validate --strict .`. Os instaladores
+  (`/install/claude-code.sh` e `.ps1`) saem de `backend/app/services/installer.py`: precisam funcionar sem o
+  `claude` no PATH (só a extensão do VS Code ou do Cursor); `test_installer.py` roda o `.sh` de verdade.
 - Frontend: `frontend/` (Vue 3, Vite, TypeScript, Vue Router, CSS puro com variáveis; sem framework de UI).
 - `make dev` sobe com hot reload; `make test` roda pytest e o build do front (com `vue-tsc`).
 

@@ -1,6 +1,6 @@
 """Servidor MCP em /mcp (Streamable HTTP): as mesmas regras da API, como tools para a IA.
 
-As tools chamam os mesmos serviços das rotas REST, então atividade automática, versões e `url` funcionam igual.
+As tools chamam os mesmos serviços das rotas REST, então atividade automática, filtros e `url` funcionam igual.
 """
 
 from collections.abc import Iterator
