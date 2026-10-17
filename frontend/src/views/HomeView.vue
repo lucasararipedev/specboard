@@ -11,7 +11,19 @@ const install = `git clone ${REPO}
 cd specboard
 docker compose up -d`
 
-const plugin = 'claude plugin install specboard --marketplace lucasararipedev/specboard'
+// O Specboard serve o instalador do plugin: ele acha o Claude Code no terminal ou dentro da extensão (VS Code,
+// Cursor), então funciona mesmo para quem não tem o comando `claude`.
+const installSh = `curl -fsSL ${origin}/install/claude-code.sh | sh`
+const installPs = `irm ${origin}/install/claude-code.ps1 | iex`
+const onWindows = /Windows/i.test(navigator.userAgent)
+
+const boardCommands = [
+  {
+    cmd: '/board',
+    what: 'Liga este chat ao board, registra o que faltou da conversa e responde em 3 linhas: o que registrou, o que você está esquecendo e o que fazer agora.',
+  },
+  { cmd: '/board off', what: 'Desliga este chat: ele sai do painel Agora.' },
+]
 
 // Cada IA com a cor da marca dela, para quem usa se reconhecer de cara.
 const ais = [
@@ -235,14 +247,31 @@ onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscr
 
             <template v-if="connectTab === 'claude'">
               <p class="muted">
-                Usa <b class="claude-name">Claude Code</b>? Um comando e pronto: o plugin liga o MCP, traz o comando
-                <code>/board</code> e mostra cada chat no painel Agora. Não precisa de prompt.
+                Usa <b class="claude-name">Claude Code</b> (no terminal, no VS Code ou no Cursor)? Cole no terminal e
+                abra um chat novo. Não precisa de prompt.
               </p>
-              <CopyBlock :text="plugin" label="Copiar" />
+              <template v-if="onWindows">
+                <p class="os small">Windows (PowerShell)</p>
+                <CopyBlock :text="installPs" label="Copiar" />
+                <p class="os small">WSL, Linux ou macOS <span class="muted">· usa VS Code com WSL? este, no terminal do WSL</span></p>
+                <CopyBlock :text="installSh" label="Copiar" />
+              </template>
+              <CopyBlock v-else :text="installSh" label="Copiar" />
+
+              <h4 class="commands-title">O que você ganha</h4>
+              <dl class="commands">
+                <template v-for="c in boardCommands" :key="c.cmd">
+                  <dt><code>{{ c.cmd }}</code></dt>
+                  <dd class="muted">{{ c.what }}</dd>
+                </template>
+                <dt>Sozinho</dt>
+                <dd class="muted">
+                  Chat aberto na pasta de um projeto já começa ligado e recebe o briefing. A IA cria e move cards,
+                  anota decisões e pergunta o que só você sabe, pelas ferramentas do MCP.
+                </dd>
+              </dl>
               <p class="muted small">
-                Rode no terminal e abra um chat novo. Só usa a extensão do VS Code? Paleta de comandos →
-                <b>Claude Code: Install Plugin</b> → <code>lucasararipedev/specboard</code>. Na pasta de um projeto o
-                chat já começa ligado; nas outras, digite <code>/board</code>.
+                Mais detalhes, atualizar e remover: <a :href="`${REPO}#plugin-do-claude-code`">README</a>.
               </p>
             </template>
 
@@ -679,6 +708,43 @@ video {
   border-radius: 2px;
   background: var(--claude);
   transform: rotate(45deg);
+}
+
+.os {
+  margin: 10px 0 6px;
+  font-weight: 600;
+}
+
+.commands-title {
+  margin: 18px 0 8px;
+  font: 600 14px var(--font-sans);
+}
+
+.commands {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 14px;
+  margin: 0;
+}
+
+.commands dt {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.commands dd {
+  margin: 0;
+  font-size: 13.5px;
+}
+
+@media (max-width: 560px) {
+  .commands {
+    grid-template-columns: 1fr;
+  }
+
+  .commands dd {
+    margin-bottom: 6px;
+  }
 }
 
 .claude-name {

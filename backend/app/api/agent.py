@@ -14,6 +14,7 @@ from ..schemas import CardOut
 from ..services.agent_docs import agent_guide, agent_prompt
 from ..services.briefing import build_briefing, render_markdown
 from ..services.cards import search_cards
+from ..services.installer import claude_code_installer, claude_code_installer_ps1
 from ..services.serialize import activity_out, card_out, question_out
 
 router = APIRouter(tags=["agent"], dependencies=[Depends(require_token)])
@@ -98,6 +99,18 @@ def export(db: Session = Depends(get_db), settings: Settings = Depends(get_setti
 def guide(settings: Settings = Depends(get_settings)):
     """Manual da API para agentes de IA, em Markdown."""
     return PlainTextResponse(agent_guide(settings), media_type=MARKDOWN)
+
+
+@public.get("/install/claude-code.sh", response_class=PlainTextResponse)
+def install_claude_code(settings: Settings = Depends(get_settings)):
+    """Instalador do plugin do Claude Code: `curl -fsSL <url>/install/claude-code.sh | sh` (nunca inclui o token)."""
+    return PlainTextResponse(claude_code_installer(settings), media_type="text/x-shellscript; charset=utf-8")
+
+
+@public.get("/install/claude-code.ps1", response_class=PlainTextResponse)
+def install_claude_code_windows(settings: Settings = Depends(get_settings)):
+    """Instalador para o Windows: `irm <url>/install/claude-code.ps1 | iex` no PowerShell."""
+    return PlainTextResponse(claude_code_installer_ps1(settings), media_type="text/plain; charset=utf-8")
 
 
 @public.get("/api/agent/prompt", response_class=PlainTextResponse)

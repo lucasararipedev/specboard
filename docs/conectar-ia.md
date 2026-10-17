@@ -5,16 +5,16 @@ saber que o board existe e conseguir falar com `http://localhost:8787`, por MCP 
 
 ## Claude Code: o plugin
 
-O caminho mais curto. No terminal:
+O caminho mais curto. Com o Specboard no ar, no terminal:
 
 ```bash
-claude plugin install specboard --marketplace lucasararipedev/specboard
+curl -fsSL http://localhost:8787/install/claude-code.sh | sh       # Linux, macOS, WSL, Git Bash
+irm http://localhost:8787/install/claude-code.ps1 | iex            # Windows (PowerShell)
 ```
 
-Dentro do Claude Code no terminal, `/plugin install specboard --marketplace lucasararipedev/specboard` faz o mesmo.
-Só usa a extensão do VS Code? Ela não tem o `/plugin` nem põe o comando `claude` no terminal: abra a paleta
-(Ctrl+Shift+P), rode **Claude Code: Install Plugin** e indique o marketplace `lucasararipedev/specboard`.
-Depois, abra um chat novo para o plugin carregar.
+O instalador acha o Claude Code no terminal ou dentro da extensão do VS Code e do Cursor (que não põe o comando
+`claude` no terminal) e instala o plugin. Depois, abra um chat novo. Comandos e o que acontece sozinho:
+[README, Plugin do Claude Code](../README.md#plugin-do-claude-code).
 
 Mexendo no Specboard e quer testar o plugin da sua cópia local? Na pasta do repositório:
 `claude plugin marketplace add ./` e `claude plugin install specboard@specboard`.

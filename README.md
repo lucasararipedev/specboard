@@ -68,22 +68,42 @@ Esqueceu o endereço? `make link` mostra o link e avisa se o app está fora do a
    passos"*.
 4. Acompanhe em **Projetos** (http://localhost:8787/projetos). A tela se atualiza sozinha enquanto a IA trabalha.
 
-**Usa Claude Code?** No lugar do passo 2, instale o plugin:
-
-```bash
-claude plugin install specboard --marketplace lucasararipedev/specboard
-```
-
-Dentro do Claude Code no terminal, `/plugin install specboard --marketplace lucasararipedev/specboard` faz o mesmo.
-Só usa a extensão do VS Code (sem o comando `claude` no terminal)? Abra a paleta (Ctrl+Shift+P), rode
-**Claude Code: Install Plugin** e indique o marketplace `lucasararipedev/specboard`. Depois, abra um chat novo.
-
-Ele conecta o MCP, traz o comando `/board` (sincroniza a conversa com o board e responde em 3 linhas: o que
-registrou, o que você está esquecendo e o que fazer agora) e liga sozinho os chats abertos na pasta de um projeto.
+**Usa Claude Code?** No lugar do passo 2, instale o plugin (veja [Plugin do Claude Code](#plugin-do-claude-code)).
 Cursor e outras ferramentas com MCP usam `http://localhost:8787/mcp`.
 
 IA no navegador (ChatGPT, claude.ai) não alcança o `localhost`; veja as saídas em
 [docs/conectar-ia.md](docs/conectar-ia.md).
+
+## Plugin do Claude Code
+
+Com o Specboard no ar, cole no terminal e abra um chat novo:
+
+```bash
+curl -fsSL http://localhost:8787/install/claude-code.sh | sh       # Linux, macOS, WSL, Git Bash
+irm http://localhost:8787/install/claude-code.ps1 | iex            # Windows (PowerShell)
+```
+
+O instalador acha o Claude Code no terminal ou dentro da extensão do VS Code e do Cursor (que não põe o comando
+`claude` no terminal). Usa VS Code com WSL? Rode o primeiro no terminal do WSL. Se ele não achar o Claude Code,
+diz o que fazer. Quem já tem o `claude` no terminal pode rodar direto
+`claude plugin install specboard --marketplace lucasararipedev/specboard`.
+
+| Comando | O que faz |
+|---|---|
+| `/board` | Liga este chat ao board, compara a conversa com o board, registra o que faltou (cards, status, decisões, perguntas, etiquetas) e responde em 3 linhas: **Registrei**, **Esquecendo**, **Agora**. |
+| `/board off` | Desliga este chat: ele sai do painel Agora. |
+
+Sem comando nenhum:
+
+- chat aberto na pasta de um projeto (campo `repo`) já começa ligado, mostra "Specboard ativo neste chat" e a IA
+  recebe o briefing; em outras pastas, fica desligado até o `/board`;
+- a IA usa o MCP para criar e mover cards, anotar decisões e perguntar o que só você sabe;
+- cada chat ligado aparece no painel **Agora** em `/projetos`, com o que está fazendo, e sai ao fechar.
+
+Endereço ou token diferentes: defina `SPECBOARD_URL` e `SPECBOARD_TOKEN` no ambiente antes de abrir o Claude Code.
+Atualizar e remover: `claude plugin update specboard@specboard` e `claude plugin uninstall specboard@specboard`
+(sem o `claude` no terminal, use o caminho que o instalador mostrou). Detalhes em
+[integrations/claude-code](integrations/claude-code/README.md).
 
 ## Configuração
 

@@ -14,6 +14,7 @@ export default defineConfig({
       '/docs': target,
       '/openapi.json': target,
       '/mcp': target,
+      '/install': target,
     },
   },
 })

@@ -131,10 +131,13 @@ com 2 a 4 opções) e o usuário responde na aba **Perguntas** do projeto (`/p/<
   ligado em cada projeto.
 
 ### 5.6.3 Plugin do Claude Code
-- Em `integrations/claude-code`, publicado pelo marketplace do próprio repositório
-  (`claude plugin install specboard --marketplace lucasararipedev/specboard` no terminal, ou `/plugin install …`
-  dentro do Claude Code): configura o MCP, traz o comando `/board`
-  e três hooks que só precisam de `curl` (mandam o JSON do hook para `/api/hooks/claude-code`).
+- Em `integrations/claude-code`, publicado pelo marketplace do próprio repositório: configura o MCP, traz o
+  comando `/board` e três hooks que só precisam de `curl` (mandam o JSON do hook para `/api/hooks/claude-code`).
+- Instalação com um comando para todos: o Specboard serve `/install/claude-code.sh` (Linux, macOS, WSL, Git Bash)
+  e `/install/claude-code.ps1` (Windows). O script acha o Claude Code no PATH ou dentro da extensão do VS Code e do
+  Cursor (que não põe `claude` no terminal), roda `claude plugin install specboard --marketplace
+  lucasararipedev/specboard` e avisa endereço ou token fora do padrão (nunca inclui o token). Sem Claude Code, diz
+  o que fazer. A landing mostra o comando do sistema de quem visita (no Windows, os dois, por causa do WSL).
 - `SessionStart`: se a pasta do chat bate com o `repo` de um projeto (igual, subpasta, `~/` como sufixo ou, se
   só um bater, o nome da pasta), o chat começa ligado, mostra "Specboard ativo neste chat" e recebe o briefing do
   projeto no contexto. Nas outras pastas fica desligado até o `/board`.
