@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { Activity, Card, Project, ProjectDetail, Question } from './types'
+import type { Activity, AgentSession, Card, Profile, Project, ProjectDetail, Question } from './types'
 
 const TOKEN_KEY = 'specboard-token'
 
@@ -84,6 +84,12 @@ export const api = {
   },
   logActivity: (slug: string, body: { message: string; kind?: 'note' | 'decision'; card_id?: number }) =>
     request<Activity>('POST', `/api/projects/${slug}/activity`, body),
+
+  sessions: (project?: string) =>
+    request<AgentSession[]>('GET', `/api/sessions${project ? `?project=${encodeURIComponent(project)}` : ''}`),
+
+  profile: () => request<Profile>('GET', '/api/profile'),
+  saveProfile: (patch: Partial<Pick<Profile, 'name' | 'avatar'>>) => request<Profile>('PUT', '/api/profile', patch),
 
   prompt: () => request<string>('GET', '/api/agent/prompt'),
 }

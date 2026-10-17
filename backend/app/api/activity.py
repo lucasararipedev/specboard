@@ -1,11 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from ..db import utcnow
 from ..deps import get_actor, get_db, project_or_404, require_token
-from ..models import Activity, Card
 from ..schemas import ActivityCreate, ActivityOut
+from ..services import activity as service
 from ..services.serialize import activity_out
 
 router = APIRouter(prefix="/api/projects/{slug}/activity", tags=["activity"], dependencies=[Depends(require_token)])
@@ -18,12 +16,7 @@ def list_activity(
     card_id: int | None = None,
     db: Session = Depends(get_db),
 ):
-    project = project_or_404(db, slug)
-    query = select(Activity).where(Activity.project_id == project.id)
-    if card_id is not None:
-        query = query.where(Activity.card_id == card_id)
-    query = query.order_by(Activity.created_at.desc(), Activity.id.desc()).limit(limit)
-    return [activity_out(a) for a in db.scalars(query)]
+    return [activity_out(a) for a in service.list_activity(db, project_or_404(db, slug), limit, card_id)]
 
 
 @router.post("", response_model=ActivityOut, status_code=201)
@@ -34,13 +27,4 @@ def log_activity(
     actor: str = Depends(get_actor),
 ):
     """Registra o que foi feito ("note") ou decidido ("decision"), opcionalmente ligado a um card."""
-    project = project_or_404(db, slug)
-    if body.card_id is not None:
-        card = db.get(Card, body.card_id)
-        if card is None or card.project_id != project.id:
-            raise HTTPException(404, f"Card #{body.card_id} não existe neste projeto")
-    activity = Activity(project_id=project.id, actor=actor, **body.model_dump())
-    db.add(activity)
-    project.updated_at = utcnow()
-    db.commit()
-    return activity_out(activity)
+    return activity_out(service.log_activity(db, project_or_404(db, slug), body, actor))

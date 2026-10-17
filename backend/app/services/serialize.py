@@ -1,11 +1,17 @@
 """Converte modelos em respostas, já com os links que a IA repassa ao usuário."""
 
+from collections import Counter
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..config import Settings
-from ..models import STATUSES, Activity, Card, Project, Question
-from ..schemas import ActivityOut, CardOut, ProjectDetail, ProjectOut, QuestionOut
+from ..models import STATUSES, Activity, AgentSession, Card, Project, Question
+from ..schemas import ActivityOut, CardOut, ProjectDetail, ProjectOut, QuestionOut, SessionOut
+
+# Sessão sem sinal de vida há mais que isso aparece como parada no painel Agora.
+IDLE_AFTER = timedelta(minutes=15)
 
 
 def project_url(settings: Settings, slug: str) -> str:
@@ -36,6 +42,13 @@ def status_counts(db: Session, project_id: int) -> dict[str, int]:
     return counts
 
 
+def label_counts(db: Session, project_id: int) -> dict[str, int]:
+    """Etiquetas em uso no projeto, da mais usada para a menos (a IA reaproveita em vez de inventar variações)."""
+    rows = db.scalars(select(Card.labels).where(Card.project_id == project_id))
+    counter = Counter(label for labels in rows for label in labels or [])
+    return dict(counter.most_common())
+
+
 def project_out(db: Session, settings: Settings, project: Project, detail: bool = False):
     data = dict(
         id=project.id,
@@ -50,7 +63,9 @@ def project_out(db: Session, settings: Settings, project: Project, detail: bool 
         created_at=project.created_at,
         updated_at=project.updated_at,
     )
-    return ProjectDetail(**data, spec=project.spec) if detail else ProjectOut(**data)
+    if detail:
+        return ProjectDetail(**data, spec=project.spec, labels=label_counts(db, project.id))
+    return ProjectOut(**data)
 
 
 def card_out(settings: Settings, card: Card) -> CardOut:
@@ -100,4 +115,27 @@ def activity_out(activity: Activity) -> ActivityOut:
         kind=activity.kind,
         message=activity.message,
         created_at=activity.created_at,
+    )
+
+
+def session_out(settings: Settings, session: AgentSession, now: datetime | None = None) -> SessionOut:
+    now = now or datetime.now(timezone.utc)
+    slug = session.project.slug if session.project else None
+    card = session.card
+    return SessionOut(
+        key=session.key,
+        actor=session.actor,
+        client=session.client,
+        project=slug,
+        project_url=project_url(settings, slug) if slug else None,
+        cwd=session.cwd,
+        doing=session.doing,
+        card_id=card.id if card else None,
+        card_title=card.title if card else None,
+        card_url=card_url(settings, card.project.slug, card.id) if card else None,
+        active=session.active,
+        idle=now - session.last_seen_at > IDLE_AFTER,
+        started_at=session.started_at,
+        last_seen_at=session.last_seen_at,
+        ended_at=session.ended_at,
     )

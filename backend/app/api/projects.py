@@ -1,32 +1,13 @@
-import re
-import unicodedata
-
-from fastapi import APIRouter, Depends, HTTPException, Response
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from ..config import Settings
 from ..deps import get_actor, get_db, get_settings, project_or_404, require_token
-from ..models import Activity, Project
 from ..schemas import ProjectCreate, ProjectDetail, ProjectOut, ProjectUpdate
-from ..services.questions import add_starter_questions
-from ..services.serialize import project_out
+from ..services import projects as service
+from ..services.serialize import label_counts, project_out
 
 router = APIRouter(prefix="/api/projects", tags=["projects"], dependencies=[Depends(require_token)])
-
-
-def slugify(text: str) -> str:
-    ascii_text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    slug = re.sub(r"[^a-z0-9]+", "-", ascii_text.lower()).strip("-")
-    return slug[:64].strip("-") or "projeto"
-
-
-def unique_slug(db: Session, base: str) -> str:
-    slug, n = base, 2
-    while db.scalar(select(Project.id).where(Project.slug == slug)) is not None:
-        suffix = f"-{n}"
-        slug, n = base[: 64 - len(suffix)] + suffix, n + 1
-    return slug
 
 
 @router.get("", response_model=list[ProjectOut])
@@ -35,10 +16,7 @@ def list_projects(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    query = select(Project).order_by(Project.updated_at.desc())
-    if not include_archived:
-        query = query.where(Project.archived.is_(False))
-    return [project_out(db, settings, p) for p in db.scalars(query)]
+    return [project_out(db, settings, p) for p in service.list_projects(db, include_archived)]
 
 
 @router.post("", response_model=ProjectDetail, status_code=201)
@@ -48,22 +26,7 @@ def create_project(
     settings: Settings = Depends(get_settings),
     actor: str = Depends(get_actor),
 ):
-    if body.slug and db.scalar(select(Project.id).where(Project.slug == body.slug)) is not None:
-        raise HTTPException(409, f"Já existe um projeto com o slug '{body.slug}'")
-    project = Project(
-        slug=body.slug or unique_slug(db, slugify(body.name)),
-        name=body.name,
-        summary=body.summary,
-        spec=body.spec,
-        repo=body.repo,
-    )
-    db.add(project)
-    db.flush()
-    if body.starter_questions:
-        add_starter_questions(db, project.id)
-    db.add(Activity(project_id=project.id, actor=actor, kind="created", message=f'Criou o projeto "{project.name}"'))
-    db.commit()
-    return project_out(db, settings, project, detail=True)
+    return project_out(db, settings, service.create_project(db, body, actor), detail=True)
 
 
 @router.get("/{slug}", response_model=ProjectDetail)
@@ -77,6 +40,12 @@ def get_spec(slug: str, db: Session = Depends(get_db)):
     return Response(project_or_404(db, slug).spec, media_type="text/markdown; charset=utf-8")
 
 
+@router.get("/{slug}/labels")
+def get_labels(slug: str, db: Session = Depends(get_db)) -> dict[str, int]:
+    """Etiquetas em uso no projeto, com quantos cards têm cada uma. Reaproveite antes de criar uma nova."""
+    return label_counts(db, project_or_404(db, slug).id)
+
+
 @router.patch("/{slug}", response_model=ProjectDetail)
 def update_project(
     slug: str,
@@ -85,13 +54,7 @@ def update_project(
     settings: Settings = Depends(get_settings),
     actor: str = Depends(get_actor),
 ):
-    project = project_or_404(db, slug)
-    changes = body.model_dump(exclude_unset=True, exclude_none=True)
-    if "spec" in changes and changes["spec"] != project.spec:
-        db.add(Activity(project_id=project.id, actor=actor, kind="spec", message="Atualizou a spec"))
-    for field, value in changes.items():
-        setattr(project, field, value)
-    db.commit()
+    project = service.update_project(db, project_or_404(db, slug), body, actor)
     return project_out(db, settings, project, detail=True)
 
 

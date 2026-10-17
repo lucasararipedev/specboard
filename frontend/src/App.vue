@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { needsToken, setToken } from './api'
+import { loadProfile, profile } from './profile'
+import UserAvatar from './components/UserAvatar.vue'
 
 const token = ref('')
+
+onMounted(loadProfile)
 
 function saveToken() {
   setToken(token.value.trim())
@@ -19,6 +23,10 @@ function saveToken() {
     <nav>
       <RouterLink to="/" class="btn ghost">Início</RouterLink>
       <RouterLink to="/projetos" class="btn ghost">Projetos</RouterLink>
+      <RouterLink to="/perfil" class="btn ghost me" :aria-label="profile.name ? `Perfil de ${profile.name}` : 'Perfil'">
+        <UserAvatar :name="profile.name" :src="profile.avatar" :size="24" />
+        <span v-if="profile.name" class="me-name">{{ profile.name }}</span>
+      </RouterLink>
     </nav>
   </header>
 
@@ -60,6 +68,19 @@ function saveToken() {
 nav {
   display: flex;
   gap: 4px;
+}
+
+.me {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+}
+
+@media (max-width: 560px) {
+  .me-name {
+    display: none;
+  }
 }
 
 nav .router-link-exact-active {

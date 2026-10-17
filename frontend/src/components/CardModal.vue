@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { api } from '../api'
 import { timeAgo } from '../format'
+import { actorName } from '../profile'
 import { PRIORITY_LABEL, STATUSES, STATUS_LABEL, type Activity, type Card } from '../types'
 import MarkdownView from './MarkdownView.vue'
 
@@ -98,7 +99,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKey))
         </label>
         <label>Prazo <input v-model="form.due_date" type="date" /></label>
         <label>Seção da spec <input v-model="form.spec_ref" placeholder="ex.: 2.1 Login" /></label>
-        <label class="wide">Etiquetas <input v-model="form.labels" placeholder="bug, front" /></label>
+        <label class="wide">Etiquetas <input v-model="form.labels" placeholder="bug, front, v0.2" /></label>
       </div>
 
       <div class="desc">
@@ -131,7 +132,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKey))
         <h3 class="small muted">Histórico</h3>
         <ul>
           <li v-for="a in history" :key="a.id" class="small">
-            <span class="chip" :class="{ ai: a.actor !== 'user' }">{{ a.actor }}</span>
+            <span class="chip" :class="{ ai: a.actor !== 'user' }">{{ actorName(a.actor) }}</span>
             {{ a.message }}
             <span class="muted">· {{ timeAgo(a.created_at) }}</span>
           </li>

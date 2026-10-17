@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/lucasararipedev/specboard/stargazers"><img src="https://img.shields.io/github/stars/lucasararipedev/specboard?style=social" alt="Estrelas no GitHub"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-MIT-c8462b" alt="Licença MIT"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-AGPL--3.0-c8462b" alt="Licença AGPL-3.0"></a>
 </p>
 
 <p align="center"><b>Open source e gratuito.</b> Se o Specboard te ajudar, deixe uma ⭐ no repositório: ajuda outros devs a encontrarem o projeto.</p>
@@ -32,14 +32,20 @@ IA:   "Você tem o bug do login em andamento há 3 dias e o Stripe é o próximo
 ## Como funciona
 
 - **Um kanban por projeto**: `backlog → todo → doing → blocked → done`, com prioridade, prazo e etiquetas.
+- **Filtro por etiquetas**: tipo, área e versão são etiquetas (`bug`, `front`, `v0.2`…). Escolha uma ou várias e
+  o board mostra só os cards que têm todas: mesmo com milhares de cards, você vê só o que entra na próxima entrega.
 - **Spec first**: cada projeto tem uma spec em Markdown que é a fonte da verdade. Decisões entram nela antes
   de virar card, e cada card aponta a seção que implementa.
 - **Perguntas**: em vez de supor, a IA te pergunta o que só você sabe (com opções para clicar). Você responde
   no board e ela usa a resposta na spec e nos cards. Todo projeto novo já vem com 5 perguntas iniciais.
 - **Atividade**: tudo que muda fica registrado, com quem mudou (você ou a IA).
+- **Painel Agora**: cada chat ligado ao board (`/board`) aparece em `/projetos` com o que está fazendo naquele
+  momento. Deixe aberto numa tela e veja o que cada agente está fazendo.
 - **Briefing**: um resumo por projeto com lembretes prontos para a IA puxar com você (card parado há dias, P0
   esquecido no backlog, prazo vencido, nada em andamento…).
-- **Feito para IA**: manual em `/llms.txt`, prompt padrão, respostas com link, OpenAPI em `/docs`.
+- **Feito para IA**: MCP em `/mcp`, plugin para o Claude Code, manual em `/llms.txt`, prompt padrão, respostas
+  com link, OpenAPI em `/docs`.
+- **Perfil**: seu nome e foto no histórico e no topo; a IA passa a te chamar pelo nome.
 - **Sem IA dentro, sem conta, sem chave**: a IA é a que você já usa. Os dados ficam num SQLite na sua máquina.
 
 ## Começando
@@ -49,8 +55,10 @@ Precisa só de Docker.
 ```bash
 git clone https://github.com/lucasararipedev/specboard
 cd specboard
-docker compose up -d          # ou: make up
+docker compose up -d          # ou: make up (já mostra o link no fim)
 ```
+
+Esqueceu o endereço? `make link` mostra o link e avisa se o app está fora do ar.
 
 1. Abra http://localhost:8787.
 2. Na página inicial, clique em **Copiar prompt** (ou selecione o texto e copie) e cole na sua IA. É um texto
@@ -59,6 +67,20 @@ docker compose up -d          # ou: make up
 3. Peça: *"crie um projeto no Specboard pro que estou fazendo, escreva uma spec curta e registre os próximos
    passos"*.
 4. Acompanhe em **Projetos** (http://localhost:8787/projetos). A tela se atualiza sozinha enquanto a IA trabalha.
+
+**Usa Claude Code?** No lugar do passo 2, instale o plugin:
+
+```bash
+claude plugin install specboard --marketplace lucasararipedev/specboard
+```
+
+Dentro do Claude Code no terminal, `/plugin install specboard --marketplace lucasararipedev/specboard` faz o mesmo.
+Só usa a extensão do VS Code (sem o comando `claude` no terminal)? Abra a paleta (Ctrl+Shift+P), rode
+**Claude Code: Install Plugin** e indique o marketplace `lucasararipedev/specboard`. Depois, abra um chat novo.
+
+Ele conecta o MCP, traz o comando `/board` (sincroniza a conversa com o board e responde em 3 linhas: o que
+registrou, o que você está esquecendo e o que fazer agora) e liga sozinho os chats abertos na pasta de um projeto.
+Cursor e outras ferramentas com MCP usam `http://localhost:8787/mcp`.
 
 IA no navegador (ChatGPT, claude.ai) não alcança o `localhost`; veja as saídas em
 [docs/conectar-ia.md](docs/conectar-ia.md).
@@ -115,16 +137,20 @@ curl -s http://localhost:8787/api/export -o backup.json
 ## API
 
 A referência para IAs é o [`/llms.txt`](http://localhost:8787/llms.txt): regras, conceitos, endpoints e exemplos
-em `curl`. A referência completa (OpenAPI) está em http://localhost:8787/docs. Resumo:
+em `curl`. A referência completa (OpenAPI) está em http://localhost:8787/docs. O MCP (Streamable HTTP) fica em
+`/mcp`, com as mesmas regras e ações. Resumo:
 
 | Rota | Para quê |
 |---|---|
 | `GET /api/briefing` | Resumo de todos os projetos com lembretes (`?format=json`) |
 | `GET/POST /api/projects`, `GET/PATCH/DELETE /api/projects/<slug>` | Projetos e spec |
-| `GET/POST /api/projects/<slug>/cards`, `GET/PATCH/DELETE /api/cards/<id>` | Cards |
+| `GET/POST /api/projects/<slug>/cards`, `GET/PATCH/DELETE /api/cards/<id>` | Cards (`?label=v0.2&label=front` = com todas as etiquetas) |
+| `GET /api/projects/<slug>/labels` | Etiquetas em uso, com contagem |
 | `GET/POST /api/projects/<slug>/questions`, `PATCH /api/questions/<id>` | Perguntas para o usuário e respostas |
 | `GET/POST /api/projects/<slug>/activity` | Histórico, notas e decisões |
 | `GET /api/search?q=` | Busca de cards (para não duplicar) |
+| `GET/POST /api/sessions`, `PATCH/DELETE /api/sessions/<key>` | Chats ligados ao board (painel Agora) |
+| `GET/PUT /api/profile` | Nome e foto do usuário |
 | `GET /api/export` | Backup em JSON |
 
 A IA se identifica com o header `X-Actor` (ex.: `claude`), e o histórico mostra quem fez o quê.
@@ -143,17 +169,22 @@ backend/requirements-dev.txt` e `uvicorn app.main:create_app --factory --port 87
 ```
 backend/          FastAPI + SQLAlchemy + SQLite (Python 3.12)
   app/
-    main.py         cria a app, registra rotas, serve o front buildado
+    main.py         cria a app, roda as migrações, registra rotas e o /mcp, serve o front buildado
     config.py       variáveis SPECBOARD_*
-    models.py       Project, Card, Question, Activity
+    models.py       Project, Card, Question, Activity, AgentSession, Profile
+    migrations/     Alembic: toda mudança de esquema é uma migração nova
+    mcp_server.py   servidor MCP (tools e o prompt board), sobre os mesmos serviços da API
     schemas.py      contratos da API (Pydantic)
-    api/            rotas: projects, cards, questions, activity, agent (briefing, busca, export, llms.txt, prompt)
-    services/       briefing (lembretes), agent_docs (prompt e manual da IA), questions (perguntas iniciais),
-                    serialize (respostas com url)
+    api/            rotas: projects, cards, questions, activity, sessions (e hooks), profile,
+                    agent (briefing, busca, export, llms.txt, prompt)
+    services/       regras de cada recurso (usadas pela API e pelo MCP), briefing (lembretes), agent_docs
+                    (prompt, manual, instruções do MCP e roteiro do /board), serialize (respostas com url)
   tests/          pytest
 frontend/         Vue 3 + Vite + TypeScript + Vue Router
-  src/views/        Início (landing com o prompt), Projetos, Board (kanban, spec, perguntas, atividade)
-  src/components/   CardModal, CopyBlock, MarkdownView, QuestionsPanel
+  src/views/        Início (landing com o prompt), Projetos (com o painel Agora), Board (kanban com filtro por etiquetas,
+                    spec, perguntas, atividade), Perfil
+  src/components/   CardModal, LabelFilter, AgentsNow, QuestionsPanel, UserAvatar, CopyBlock, MarkdownView
+integrations/claude-code/  plugin do Claude Code (MCP, /board, hooks); o marketplace fica em .claude-plugin/
 docs/             conectar-ia.md (o prompt, IAs no navegador, dúvidas), demo.gif (README)
 scripts/demo-video/  grava o vídeo de demonstração da página inicial
 spec.md           a spec deste projeto: problema, escopo da v1, roadmap, decisões
@@ -165,10 +196,8 @@ Contribuindo com ajuda de IA? O [AGENTS.md](AGENTS.md) tem as convenções do re
 
 ## Roadmap
 
-O próximo passo grande é a **IA opcional dentro do sistema**: você cadastra uma chave (Claude, ChatGPT, Gemini,
-OpenRouter, modelo local) e ganha extração de cards a partir de texto solto, priorização sugerida e resumo
-semanal. Também no radar: servidor MCP, integração com GitHub e lembretes por e-mail/Telegram. Detalhes em
-[spec.md](spec.md), seção 7.
+No radar: integração com GitHub, lembretes por e-mail/Telegram, subtarefas e import do backup e de outras
+ferramentas. Detalhes em [spec.md](spec.md), seção 7.
 
 ## Apoie o projeto
 
@@ -181,4 +210,5 @@ O Specboard é open source e vai continuar gratuito. Se ele te ajudou:
 
 ## Licença
 
-[MIT](LICENSE)
+[AGPL-3.0](LICENSE). Use, mude e hospede à vontade; se oferecer uma versão modificada como serviço para
+outras pessoas, publique o código dela sob a mesma licença.

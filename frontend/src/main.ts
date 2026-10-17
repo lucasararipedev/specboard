@@ -4,6 +4,7 @@ import App from './App.vue'
 import HomeView from './views/HomeView.vue'
 import ProjectsView from './views/ProjectsView.vue'
 import BoardView from './views/BoardView.vue'
+import ProfileView from './views/ProfileView.vue'
 import './styles.css'
 
 const router = createRouter({
@@ -13,6 +14,7 @@ const router = createRouter({
     { path: '/projetos', component: ProjectsView },
     // Links que a IA manda: /p/<slug> e /p/<slug>?card=<id>
     { path: '/p/:slug', component: BoardView, props: true },
+    { path: '/perfil', component: ProfileView },
     // A antiga página "Conectar IA" virou a seção do prompt na página inicial.
     { path: '/conectar', redirect: { path: '/', hash: '#prompt' } },
     { path: '/:pathMatch(.*)*', redirect: '/' },

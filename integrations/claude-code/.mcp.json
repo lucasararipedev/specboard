@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "specboard": {
+      "type": "http",
+      "url": "${SPECBOARD_URL:-http://localhost:8787}/mcp",
+      "headers": {
+        "X-Actor": "claude",
+        "Authorization": "Bearer ${SPECBOARD_TOKEN:-}"
+      }
+    }
+  }
+}

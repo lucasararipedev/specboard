@@ -10,8 +10,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..config import Settings
-from ..models import PRIORITY_LABELS, Activity, Card, Project, Question
-from .serialize import card_url, project_url, questions_url, status_counts
+from ..models import PRIORITY_LABELS, Activity, AgentSession, Card, Profile, Project, Question
+from .serialize import IDLE_AFTER, card_url, project_url, questions_url, status_counts
 
 NEXT_UP_LIMIT = 5
 WIP_LIMIT = 3
@@ -26,6 +26,7 @@ def _brief(settings: Settings, slug: str, card: Card) -> dict:
         "priority": card.priority,
         "spec_ref": card.spec_ref,
         "due_date": card.due_date.isoformat() if card.due_date else None,
+        "labels": card.labels or [],
         "updated_at": card.updated_at.isoformat(),
         "url": card_url(settings, slug, card.id),
     }
@@ -61,6 +62,16 @@ def _project_briefing(db: Session, settings: Settings, project: Project, now: da
     )
     open_questions = [q for q in questions if q.status == "open"]
     new_answers = [q for q in questions if q.status == "answered"]
+
+    sessions = [
+        {"actor": s.actor, "doing": s.doing, "card_id": s.card_id, "last_seen_at": s.last_seen_at.isoformat()}
+        for s in db.scalars(
+            select(AgentSession)
+            .where(AgentSession.project_id == project.id, AgentSession.active.is_(True))
+            .order_by(AgentSession.last_seen_at.desc())
+        )
+        if now - s.last_seen_at <= IDLE_AFTER
+    ]
 
     nudges: list[str] = []
     if new_answers:
@@ -104,6 +115,7 @@ def _project_briefing(db: Session, settings: Settings, project: Project, now: da
         "next_up": [_brief(settings, project.slug, c) for c in next_up],
         "overdue": [_brief(settings, project.slug, c) for c in overdue],
         "done_last_7_days": done_last_7_days,
+        "sessions": sessions,
         "open_questions": [
             {"id": q.id, "question": q.question, "options": q.options, "url": questions_url(settings, project.slug, q.id)}
             for q in open_questions
@@ -124,7 +136,13 @@ def build_briefing(db: Session, settings: Settings, slug: str | None = None, now
     if slug:
         query = select(Project).where(Project.slug == slug)
     projects = [_project_briefing(db, settings, p, now, now.date()) for p in db.scalars(query)]
-    return {"generated_at": now.isoformat(), "board_url": f"{settings.public_url}/projetos", "projects": projects}
+    profile = db.get(Profile, 1)
+    return {
+        "generated_at": now.isoformat(),
+        "board_url": f"{settings.public_url}/projetos",
+        "user": profile.name if profile and profile.name else None,
+        "projects": projects,
+    }
 
 
 def _line(card: dict) -> str:
@@ -133,6 +151,8 @@ def _line(card: dict) -> str:
         extra.append(f"spec {card['spec_ref']}")
     if card["due_date"]:
         extra.append(f"prazo {card['due_date']}")
+    if card["labels"]:
+        extra.append(", ".join(card["labels"]))
     suffix = f" ({', '.join(extra)})" if extra else ""
     return f"- #{card['id']} [{PRIORITY_LABELS[card['priority']]}] {card['title']}{suffix} — {card['url']}"
 
@@ -140,6 +160,8 @@ def _line(card: dict) -> str:
 def render_markdown(briefing: dict) -> str:
     out = [f"# Briefing do Specboard — {briefing['generated_at'][:16].replace('T', ' ')} UTC", ""]
     out.append(f"Board: {briefing['board_url']}")
+    if briefing.get("user"):
+        out.append(f"Usuário: {briefing['user']} (chame pelo nome)")
     if not briefing["projects"]:
         out += ["", "Nenhum projeto ainda. Pergunte ao usuário em que ele está trabalhando e crie o primeiro."]
         return "\n".join(out) + "\n"
@@ -153,6 +175,12 @@ def render_markdown(briefing: dict) -> str:
             f"backlog {counts['backlog']} · todo {counts['todo']} · doing {counts['doing']} · "
             f"blocked {counts['blocked']} · done {counts['done']} ({p['done_last_7_days']} nos últimos 7 dias)"
         )
+        if p["sessions"]:
+            out += ["", "**Agora**"]
+            out += [
+                f"- {s['actor']}: {s['doing'] or 'sem status'}" + (f" (#{s['card_id']})" if s["card_id"] else "")
+                for s in p["sessions"]
+            ]
         for title, key in (("Em andamento", "doing"), ("Travado", "blocked"), ("Próximos", "next_up")):
             if p[key]:
                 out += ["", f"**{title}**"] + [_line(c) for c in p[key]]

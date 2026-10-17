@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { api } from '../api'
 import { timeAgo } from '../format'
 import type { Project } from '../types'
+import AgentsNow from '../components/AgentsNow.vue'
 
 const router = useRouter()
 const projects = ref<Project[]>([])
@@ -52,6 +53,8 @@ watch(showArchived, load)
       </div>
       <button class="btn primary" @click="creating = !creating">+ Novo projeto</button>
     </div>
+
+    <AgentsNow />
 
     <form v-if="creating" class="panel new" @submit.prevent="create">
       <label>Nome <input v-model="form.name" required placeholder="Meu SaaS" autofocus /></label>

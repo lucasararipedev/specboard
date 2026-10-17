@@ -13,6 +13,7 @@ export default defineConfig({
       '/llms.txt': target,
       '/docs': target,
       '/openapi.json': target,
+      '/mcp': target,
     },
   },
 })

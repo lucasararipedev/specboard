@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { formatDate, isOverdue, timeAgo } from '../format'
+import { actorName } from '../profile'
 import {
   STATUSES,
   STATUS_LABEL,
@@ -12,9 +13,11 @@ import {
   type Question,
   type Status,
 } from '../types'
+import AgentsNow from '../components/AgentsNow.vue'
 import CardModal from '../components/CardModal.vue'
 import MarkdownView from '../components/MarkdownView.vue'
 import QuestionsPanel from '../components/QuestionsPanel.vue'
+import LabelFilter from '../components/LabelFilter.vue'
 
 const props = defineProps<{ slug: string }>()
 const route = useRoute()
@@ -58,13 +61,43 @@ const error = ref('')
 
 const columns = computed(() => {
   const byStatus = Object.fromEntries(STATUSES.map((s) => [s, [] as Card[]])) as Record<Status, Card[]>
-  for (const card of cards.value) byStatus[card.status].push(card)
+  for (const card of filtered.value) byStatus[card.status].push(card)
   for (const s of STATUSES) byStatus[s].sort((a, b) => a.position - b.position)
   // Feito: mais recente em cima.
   byStatus.done.sort((a, b) => (b.done_at ?? '').localeCompare(a.done_at ?? ''))
   return byStatus
 })
 const showAllDone = ref(false)
+
+// ---- filtro por etiquetas (?etiqueta=v0.2&etiqueta=front): o card precisa ter todas ----
+const selectedLabels = computed(() => {
+  const q = route.query.etiqueta
+  return (Array.isArray(q) ? q : [q]).filter((l): l is string => typeof l === 'string' && l !== '')
+})
+
+const labelCounts = computed(() => {
+  const counts: Record<string, number> = {}
+  for (const card of cards.value) for (const l of card.labels) counts[l] = (counts[l] ?? 0) + 1
+  return counts
+})
+
+const filtered = computed(() => {
+  const wanted = selectedLabels.value.map((l) => l.toLowerCase())
+  if (!wanted.length) return cards.value
+  return cards.value.filter((c) => {
+    const mine = c.labels.map((l) => l.toLowerCase())
+    return wanted.every((l) => mine.includes(l))
+  })
+})
+
+function setLabels(labels: string[]) {
+  const { etiqueta: _, ...rest } = route.query
+  router.replace({ query: labels.length ? { ...rest, etiqueta: labels } : rest })
+}
+
+function isSelectedLabel(label: string) {
+  return selectedLabels.value.some((l) => l.toLowerCase() === label.toLowerCase())
+}
 
 // ---- carregamento ----
 async function loadCards() {
@@ -87,7 +120,12 @@ function onQuestionsChanged() {
 async function loadAll() {
   error.value = ''
   try {
-    const [p] = await Promise.all([api.project(props.slug), loadCards(), loadActivity(), loadQuestions()])
+    const [p] = await Promise.all([
+      api.project(props.slug),
+      loadCards(),
+      loadActivity(),
+      loadQuestions(),
+    ])
     project.value = p
     if (!editingSpec.value) specDraft.value = p.spec
   } catch (e) {
@@ -161,7 +199,8 @@ async function addCard(status: Status) {
   if (!title) return
   saving.value = true
   try {
-    const card = await api.createCard(props.slug, { title, status })
+    // Com o board filtrado, o card novo já nasce com as etiquetas do filtro.
+    const card = await api.createCard(props.slug, { title, status, labels: selectedLabels.value })
     cards.value.push(card)
     newTitle.value = ''
     loadActivity()
@@ -332,72 +371,76 @@ async function copyBoardLink() {
       </nav>
 
       <!-- BOARD -->
-      <section v-if="tab === 'board'" class="columns">
-        <div
-          v-for="status in STATUSES"
-          :key="status"
-          class="column"
-          :class="{ over: dropAt?.status === status }"
-          :style="{ background: `var(--col-${status})` }"
-          @dragover="onDragOver(status, $event)"
-          @drop.prevent="onDrop(status)"
-        >
-          <div class="col-head">
-            <h2>{{ STATUS_LABEL[status] }}</h2>
-            <span class="count">{{ columns[status].length }}</span>
-            <button class="btn ghost add" :aria-label="`Novo card em ${STATUS_LABEL[status]}`" @click="adding = status">
-              +
-            </button>
-          </div>
+      <template v-if="tab === 'board'">
+        <LabelFilter :counts="labelCounts" :selected="selectedLabels" @change="setLabels" />
+        <AgentsNow :project="slug" @open-card="showCard" />
+        <section class="columns">
+          <div
+            v-for="status in STATUSES"
+            :key="status"
+            class="column"
+            :class="{ over: dropAt?.status === status }"
+            :style="{ background: `var(--col-${status})` }"
+            @dragover="onDragOver(status, $event)"
+            @drop.prevent="onDrop(status)"
+          >
+            <div class="col-head">
+              <h2>{{ STATUS_LABEL[status] }}</h2>
+              <span class="count">{{ columns[status].length }}</span>
+              <button class="btn ghost add" :aria-label="`Novo card em ${STATUS_LABEL[status]}`" @click="adding = status">
+                +
+              </button>
+            </div>
 
-          <form v-if="adding === status" class="quick-add" @submit.prevent="addCard(status)">
-            <input
-              v-model="newTitle"
-              placeholder="Título e Enter"
-              autofocus
-              @keydown.esc="adding = null"
-              @blur="!newTitle && (adding = null)"
-            />
-          </form>
+            <form v-if="adding === status" class="quick-add" @submit.prevent="addCard(status)">
+              <input
+                v-model="newTitle"
+                placeholder="Título e Enter"
+                autofocus
+                @keydown.esc="adding = null"
+                @blur="!newTitle && (adding = null)"
+              />
+            </form>
 
-          <div class="list">
-            <template v-for="card in visibleCards(status)" :key="card.id">
-              <div v-if="lineBefore(status, card)" class="drop-line" />
-              <article
-                class="card"
-                :class="{ dragging: dragging?.id === card.id }"
-                :data-card="card.id"
-                draggable="true"
-                @dragstart="onDragStart(card, $event)"
-                @dragend="onDragEnd"
-                @click="showCard(card.id)"
+            <div class="list">
+              <template v-for="card in visibleCards(status)" :key="card.id">
+                <div v-if="lineBefore(status, card)" class="drop-line" />
+                <article
+                  class="card"
+                  :class="{ dragging: dragging?.id === card.id }"
+                  :data-card="card.id"
+                  draggable="true"
+                  @dragstart="onDragStart(card, $event)"
+                  @dragend="onDragEnd"
+                  @click="showCard(card.id)"
+                >
+                  <p class="card-title">{{ card.title }}</p>
+                  <div class="meta">
+                    <span class="id">#{{ card.id }}</span>
+                    <span v-if="card.priority <= 1" class="chip" :class="`p${card.priority}`">P{{ card.priority }}</span>
+                    <span v-if="card.due_date" class="chip" :class="{ late: card.status !== 'done' && isOverdue(card.due_date) }">
+                      {{ formatDate(card.due_date) }}
+                    </span>
+                    <span v-if="card.spec_ref" class="chip" :title="`Spec: ${card.spec_ref}`">§ {{ card.spec_ref }}</span>
+                    <span v-for="l in card.labels" :key="l" class="chip" :class="{ ink: isSelectedLabel(l) }">{{ l }}</span>
+                  </div>
+                  <p v-if="status === 'doing' || status === 'blocked'" class="muted tiny">
+                    atualizado {{ timeAgo(card.updated_at) }}
+                  </p>
+                </article>
+              </template>
+              <div v-if="dropAt?.status === status && dropAt.index >= others(status).length" class="drop-line" />
+              <button
+                v-if="status === 'done' && columns.done.length > DONE_VISIBLE"
+                class="btn ghost small"
+                @click="showAllDone = !showAllDone"
               >
-                <p class="card-title">{{ card.title }}</p>
-                <div class="meta">
-                  <span class="id">#{{ card.id }}</span>
-                  <span v-if="card.priority <= 1" class="chip" :class="`p${card.priority}`">P{{ card.priority }}</span>
-                  <span v-if="card.due_date" class="chip" :class="{ late: card.status !== 'done' && isOverdue(card.due_date) }">
-                    {{ formatDate(card.due_date) }}
-                  </span>
-                  <span v-if="card.spec_ref" class="chip" :title="`Spec: ${card.spec_ref}`">§ {{ card.spec_ref }}</span>
-                  <span v-for="l in card.labels" :key="l" class="chip">{{ l }}</span>
-                </div>
-                <p v-if="status === 'doing' || status === 'blocked'" class="muted tiny">
-                  atualizado {{ timeAgo(card.updated_at) }}
-                </p>
-              </article>
-            </template>
-            <div v-if="dropAt?.status === status && dropAt.index >= others(status).length" class="drop-line" />
-            <button
-              v-if="status === 'done' && columns.done.length > DONE_VISIBLE"
-              class="btn ghost small"
-              @click="showAllDone = !showAllDone"
-            >
-              {{ showAllDone ? 'Mostrar menos' : `Ver todos (${columns.done.length})` }}
-            </button>
+                {{ showAllDone ? 'Mostrar menos' : `Ver todos (${columns.done.length})` }}
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </template>
 
       <!-- SPEC -->
       <section v-else-if="tab === 'spec'" class="panel spec">
@@ -440,7 +483,7 @@ async function copyBoardLink() {
         </form>
         <ul v-if="activity.length">
           <li v-for="a in activity" :key="a.id">
-            <span class="chip" :class="{ ai: a.actor !== 'user' }">{{ a.actor }}</span>
+            <span class="chip" :class="{ ai: a.actor !== 'user' }">{{ actorName(a.actor) }}</span>
             <span v-if="a.kind === 'decision'" class="chip p1">decisão</span>
             <span class="msg">{{ a.message }}</span>
             <button v-if="a.card_id && cards.some((c) => c.id === a.card_id)" class="link" @click="showCard(a.card_id)">
@@ -453,7 +496,14 @@ async function copyBoardLink() {
       </section>
     </template>
 
-    <CardModal v-if="openCard" :key="openCard.id" :card="openCard" @close="closeCard" @saved="onSaved" @deleted="onDeleted" />
+    <CardModal
+      v-if="openCard"
+      :key="openCard.id"
+      :card="openCard"
+      @close="closeCard"
+      @saved="onSaved"
+      @deleted="onDeleted"
+    />
   </main>
 </template>
 

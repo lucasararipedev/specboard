@@ -11,12 +11,25 @@ const install = `git clone ${REPO}
 cd specboard
 docker compose up -d`
 
+const plugin = 'claude plugin install specboard --marketplace lucasararipedev/specboard'
+
+// Cada IA com a cor da marca dela, para quem usa se reconhecer de cara.
+const ais = [
+  { name: 'Claude Code', brand: 'claude' },
+  { name: 'Cursor', brand: 'cursor' },
+  { name: 'Codex', brand: 'codex' },
+  { name: 'Gemini CLI', brand: 'gemini' },
+  { name: 'ChatGPT', brand: 'chatgpt' },
+]
+
 const firstAsk = 'Crie um projeto no Specboard pro que estou fazendo, escreva uma spec curta e registre os próximos passos.'
 
 const prompt = ref('')
 const promptError = ref('')
 const online = ref<boolean | null>(null)
 const heroCopied = ref(false)
+// A maioria usa Claude Code: a aba dele abre primeiro no passo 2.
+const connectTab = ref<'claude' | 'other'>('claude')
 
 const video = ref<HTMLVideoElement>()
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -36,7 +49,10 @@ function onFullscreenChange() {
 async function copyPromptFromHero() {
   if (!prompt.value) return
   heroCopied.value = await copyText(prompt.value)
-  if (!heroCopied.value) document.getElementById('prompt')?.scrollIntoView()
+  if (!heroCopied.value) {
+    connectTab.value = 'other'
+    document.getElementById('prompt')?.scrollIntoView()
+  }
   setTimeout(() => (heroCopied.value = false), 2400)
 }
 
@@ -83,6 +99,10 @@ const faq = [
     a: 'Eles rodam na nuvem e não enxergam o seu localhost. Cole o prompt mesmo assim: a IA te passa os comandos curl prontos para você rodar. Ou exponha com um túnel e defina SPECBOARD_TOKEN (está no README).',
   },
   {
+    q: 'Tem MCP?',
+    a: 'Tem, em /mcp no mesmo endereço: as mesmas regras, como tools. No Claude Code, o plugin já configura o MCP, traz o comando /board e mostra cada chat no painel Agora.',
+  },
+  {
     q: 'Preciso colar o prompt toda vez?',
     a: 'Não. O prompt pede para a IA salvar as regras na memória ou no arquivo de instruções dela. Se a sua IA não tiver memória, cole no começo da conversa.',
   },
@@ -92,7 +112,7 @@ const faq = [
   },
   {
     q: 'Quanto custa?',
-    a: 'Nada. É open source, licença MIT. Use, mude e distribua.',
+    a: 'Nada. É open source, licença AGPL-3.0: use, mude e hospede à vontade. Quem oferecer uma versão modificada como serviço publica o código dela.',
   },
 ]
 
@@ -123,9 +143,14 @@ onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscr
         <p class="kicker mono">open source · roda na sua máquina · sem conta</p>
         <h1>Sua IA esquece.<br />O <span class="ink-mark">board</span>, não.</h1>
         <p class="lead">
-          Um kanban <b>spec-first</b> que a sua própria IA mantém em dia. Ela registra as tarefas, move os cards,
-          guarda as decisões na spec e, no começo de cada sessão, te lembra do que importa.
+          Um kanban <b>spec-first</b> que guarda a memória dos seus projetos. Ela fica no board, não na IA: troque
+          de chat, de ferramenta ou de modelo, e quem chegar continua de onde o outro parou.
         </p>
+        <ul class="any-ai" aria-label="Funciona com qualquer IA">
+          <li v-for="ai in ais" :key="ai.name" class="chip brand" :class="ai.brand">{{ ai.name }}</li>
+          <li class="any-ai-arrow mono" aria-hidden="true">→</li>
+          <li class="chip ink">o mesmo board</li>
+        </ul>
         <div class="cta">
           <button class="btn primary big" :disabled="!prompt" @click="copyPromptFromHero">
             {{ heroCopied ? 'Copiado. Agora cole na sua IA' : 'Copiar o prompt' }}
@@ -133,7 +158,6 @@ onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscr
           <a href="#como-funciona" class="btn big">Como funciona</a>
         </div>
         <p class="muted small">
-          Funciona com Claude, ChatGPT, Gemini, Cursor, Codex e o que mais você usar.
           É open source: <a :href="REPO" target="_blank" rel="noopener">deixe uma estrela no GitHub</a>.
         </p>
       </div>
@@ -185,13 +209,51 @@ onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscr
         <li id="prompt" class="step">
           <div class="step-num mono">2</div>
           <div class="step-body">
-            <h3>Copie o prompt e cole na sua IA</h3>
-            <p class="muted">
-              Clique em <b>Copiar prompt</b> (ou selecione o texto e copie) e cole na sua IA. É o mesmo texto para
-              qualquer uma. Ela lê o manual, salva as regras na memória e começa a cuidar do board.
-            </p>
-            <p v-if="promptError" class="error">Não deu para carregar o prompt: {{ promptError }}</p>
-            <CopyBlock v-else :text="prompt" label="Copiar prompt" tall />
+            <h3>Conecte a sua IA</h3>
+            <div class="connect-tabs" role="tablist" aria-label="Qual IA você usa">
+              <button
+                type="button"
+                role="tab"
+                class="tab-claude"
+                :class="{ active: connectTab === 'claude' }"
+                :aria-selected="connectTab === 'claude'"
+                @click="connectTab = 'claude'"
+              >
+                <span class="claude-mark" aria-hidden="true" />Claude Code
+                <span class="chip mono">recomendado</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                :class="{ active: connectTab === 'other' }"
+                :aria-selected="connectTab === 'other'"
+                @click="connectTab = 'other'"
+              >
+                Outra IA
+              </button>
+            </div>
+
+            <template v-if="connectTab === 'claude'">
+              <p class="muted">
+                Usa <b class="claude-name">Claude Code</b>? Um comando e pronto: o plugin liga o MCP, traz o comando
+                <code>/board</code> e mostra cada chat no painel Agora. Não precisa de prompt.
+              </p>
+              <CopyBlock :text="plugin" label="Copiar" />
+              <p class="muted small">
+                Rode no terminal e abra um chat novo. Só usa a extensão do VS Code? Paleta de comandos →
+                <b>Claude Code: Install Plugin</b> → <code>lucasararipedev/specboard</code>. Na pasta de um projeto o
+                chat já começa ligado; nas outras, digite <code>/board</code>.
+              </p>
+            </template>
+
+            <template v-else>
+              <p class="muted">
+                Copie o prompt (ícone no canto do bloco, ou selecione o texto) e cole na sua IA. É o mesmo texto para
+                qualquer uma. Ela lê o manual, salva as regras na memória e começa a cuidar do board.
+              </p>
+              <p v-if="promptError" class="error">Não deu para carregar o prompt: {{ promptError }}</p>
+              <CopyBlock v-else :text="prompt" label="Copiar prompt" tall />
+            </template>
           </div>
         </li>
 
@@ -292,7 +354,7 @@ onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscr
     <footer class="foot">
       <p>
         <img src="/favicon.svg" alt="" width="22" height="22" />
-        <b>Specboard</b> <span class="muted">· open source, licença MIT</span>
+        <b>Specboard</b> <span class="muted">· open source, licença AGPL-3.0</span>
       </p>
       <nav class="small">
         <a :href="REPO" target="_blank" rel="noopener">Estrela no GitHub</a>
@@ -363,6 +425,75 @@ onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscr
   margin: 22px 0 26px;
   font-size: 18px;
   line-height: 1.6;
+}
+
+/* Várias IAs apontando para um board só: a memória não depende de qual você usa. */
+.any-ai {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: -8px 0 26px;
+  padding: 0;
+  list-style: none;
+}
+
+.any-ai .chip {
+  background: var(--surface);
+  font-size: 12.5px;
+}
+
+.any-ai .chip.ink {
+  background: var(--text);
+}
+
+.any-ai .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-weight: 500;
+}
+
+/* Marcador quadrado na cor da marca, como o do logo. */
+.any-ai .brand::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 1.5px;
+  background: var(--brand);
+}
+
+.brand.claude {
+  --brand: var(--claude);
+  --brand-ink: var(--claude-ink);
+  --brand-soft: var(--claude-soft);
+}
+
+/* Cursor e OpenAI são marcas preto e branco. */
+.brand.cursor,
+.brand.codex {
+  --brand: var(--mono-brand);
+  --brand-ink: var(--mono-brand);
+  --brand-soft: var(--surface);
+}
+
+.brand.gemini {
+  --brand: var(--gemini);
+  --brand-ink: var(--gemini-ink);
+  --brand-soft: var(--gemini-soft);
+}
+
+.brand.chatgpt {
+  --brand: var(--chatgpt);
+  --brand-ink: var(--chatgpt-ink);
+  --brand-soft: var(--chatgpt-soft);
+}
+
+.any-ai-arrow {
+  color: var(--accent);
 }
 
 .cta {
@@ -496,6 +627,62 @@ video {
 
 .step-body p {
   margin: 0;
+}
+
+.connect-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.connect-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -1px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.connect-tabs button.active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}
+
+/* Claude Code em laranja do Claude, para quem usa bater o olho e saber que é ali. */
+.connect-tabs .tab-claude {
+  color: var(--claude-ink);
+  font-weight: 600;
+}
+
+.connect-tabs .tab-claude.active {
+  color: var(--claude-ink);
+  border-bottom-color: var(--claude);
+}
+
+.tab-claude .chip {
+  background: var(--claude-soft);
+  color: var(--claude-ink);
+  font-weight: 500;
+}
+
+.claude-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--claude);
+  transform: rotate(45deg);
+}
+
+.claude-name {
+  color: var(--claude-ink);
 }
 
 .step-body > .btn {

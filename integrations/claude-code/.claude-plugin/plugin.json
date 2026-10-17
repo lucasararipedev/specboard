@@ -1,0 +1,9 @@
+{
+  "name": "specboard",
+  "version": "0.1.0",
+  "description": "Liga o Claude Code ao seu Specboard: MCP, comando /board e hooks que mostram cada chat no painel Agora",
+  "author": { "name": "lucasararipedev" },
+  "homepage": "https://github.com/lucasararipedev/specboard",
+  "repository": "https://github.com/lucasararipedev/specboard",
+  "license": "AGPL-3.0"
+}

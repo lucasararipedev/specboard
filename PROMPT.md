@@ -2,7 +2,7 @@ Quero que você mantenha meus projetos organizados usando o Specboard, um kanban
 
 Endereço: http://localhost:8787 (meus projetos ficam em http://localhost:8787/projetos)
 
-1. Leia agora o manual da API em http://localhost:8787/llms.txt (com curl ou sua ferramenta de requisição HTTP). Ele tem as regras e os endpoints.
+1. Leia agora o manual da API em http://localhost:8787/llms.txt (com curl ou sua ferramenta de requisição HTTP). Ele tem as regras e os endpoints. Se você suporta MCP, pode usar também o servidor em http://localhost:8787/mcp: as mesmas regras, como tools.
 2. Depois rode GET http://localhost:8787/api/briefing e me diga em poucas linhas o que está em andamento, o que travou e qual deve ser minha próxima prioridade.
 3. Daqui pra frente, sem eu precisar pedir:
    - no começo de cada sessão de trabalho, consulte o briefing e me lembre das prioridades e dos lembretes que ele trouxer;

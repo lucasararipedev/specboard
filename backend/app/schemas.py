@@ -45,6 +45,7 @@ class ProjectOut(BaseModel):
 
 class ProjectDetail(ProjectOut):
     spec: str
+    labels: dict[str, int] = Field(description="Etiquetas em uso no projeto, com quantos cards têm cada uma")
 
 
 class CardCreate(BaseModel):
@@ -52,7 +53,9 @@ class CardCreate(BaseModel):
     description: str = Field("", description="Markdown: contexto, critérios de aceite, links")
     status: Status = "backlog"
     priority: Priority = Field(2, ge=0, le=3, description="0 urgente, 1 alta, 2 normal, 3 algum dia")
-    labels: list[str] = Field(default_factory=list)
+    labels: list[str] = Field(
+        default_factory=list, description='Etiquetas livres: tipo, área ou versão, ex.: ["bug", "front", "v0.2"]'
+    )
     spec_ref: str = Field("", description='Seção da spec que o card implementa, ex.: "3.2 Login"')
     due_date: date | None = None
 
@@ -130,3 +133,49 @@ class ActivityOut(BaseModel):
     kind: str
     message: str
     created_at: datetime
+
+
+class ProfileUpdate(BaseModel):
+    name: str | None = Field(None, max_length=100)
+    avatar: str | None = Field(None, description='Foto como data URL (png, jpeg ou webp, até 300 KB); "" remove')
+
+
+class ProfileOut(BaseModel):
+    name: str
+    avatar: str
+    updated_at: datetime | None
+
+
+class SessionUpsert(BaseModel):
+    key: str | None = Field(None, max_length=128, description="Id da sessão; omitido = gera um novo")
+    project: str | None = Field(None, description="Slug do projeto; omitido = tenta achar pela pasta (cwd)")
+    cwd: str | None = Field(None, max_length=500, description="Pasta onde o chat está rodando")
+    doing: str | None = Field(None, max_length=300, description="O que você está fazendo agora, em uma linha")
+    card_id: int | None = None
+    client: str | None = Field(None, max_length=64)
+    active: bool = True
+
+
+class SessionUpdate(BaseModel):
+    project: str | None = None
+    doing: str | None = Field(None, max_length=300)
+    card_id: int | None = None
+    active: bool | None = None
+
+
+class SessionOut(BaseModel):
+    key: str
+    actor: str
+    client: str
+    project: str | None
+    project_url: str | None
+    cwd: str
+    doing: str
+    card_id: int | None
+    card_title: str | None
+    card_url: str | None
+    active: bool
+    idle: bool = Field(description="Sem sinal de vida há mais de 15 minutos")
+    started_at: datetime
+    last_seen_at: datetime
+    ended_at: datetime | None

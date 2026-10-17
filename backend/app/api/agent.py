@@ -4,15 +4,16 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import PlainTextResponse
-from sqlalchemy import func, or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..config import Settings
 from ..deps import get_db, get_settings, project_or_404, require_token
-from ..models import Activity, Card, Project, Question
+from ..models import Activity, Card, Profile, Project, Question
 from ..schemas import CardOut
 from ..services.agent_docs import agent_guide, agent_prompt
 from ..services.briefing import build_briefing, render_markdown
+from ..services.cards import search_cards
 from ..services.serialize import activity_out, card_out, question_out
 
 router = APIRouter(tags=["agent"], dependencies=[Depends(require_token)])
@@ -50,28 +51,21 @@ def project_briefing(
 def search(
     q: str = Query(min_length=1),
     project: str | None = None,
+    label: list[str] = Query([], description="Só cards com todas estas etiquetas"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
     """Busca cards (sem diferenciar maiúsculas) para evitar duplicatas antes de criar."""
-    term = f"%{q.lower()}%"
-    query = select(Card).where(
-        or_(
-            func.lower(Card.title).like(term),
-            func.lower(Card.description).like(term),
-            func.lower(Card.spec_ref).like(term),
-        )
-    )
-    if project:
-        query = query.where(Card.project_id == project_or_404(db, project).id)
-    query = query.order_by(Card.updated_at.desc()).limit(limit)
-    return [card_out(settings, c) for c in db.scalars(query)]
+    target = project_or_404(db, project) if project else None
+    return [card_out(settings, c) for c in search_cards(db, q, target, label, limit)]
 
 
 @router.get("/api/export")
 def export(db: Session = Depends(get_db), settings: Settings = Depends(get_settings)):
-    """Backup completo em JSON (projetos com spec, cards, perguntas e atividades)."""
+    """Backup completo em JSON (perfil e projetos com spec, cards, perguntas e atividades).
+
+    O formato só cresce: campos novos entram sem mudar "version", e quem lê ignora o que não conhece."""
     projects = []
     for p in db.scalars(select(Project).order_by(Project.id)):
         cards = db.scalars(select(Card).where(Card.project_id == p.id).order_by(Card.id))
@@ -91,7 +85,12 @@ def export(db: Session = Depends(get_db), settings: Settings = Depends(get_setti
                 "activity": [activity_out(a) for a in activities],
             }
         )
-    return {"version": 1, "projects": projects}
+    profile = db.get(Profile, 1)
+    return {
+        "version": 1,
+        "profile": {"name": profile.name, "avatar": profile.avatar} if profile else None,
+        "projects": projects,
+    }
 
 
 @public.get("/llms.txt", response_class=PlainTextResponse)

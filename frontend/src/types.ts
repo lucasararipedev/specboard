@@ -33,6 +33,8 @@ export interface Project {
 
 export interface ProjectDetail extends Project {
   spec: string
+  /** Etiquetas em uso no projeto, com quantos cards têm cada uma. */
+  labels: Record<string, number>
 }
 
 export interface Card {
@@ -78,4 +80,29 @@ export interface Activity {
   kind: string
   message: string
   created_at: string
+}
+
+export interface Profile {
+  name: string
+  avatar: string
+  updated_at: string | null
+}
+
+/** Um chat ou agente ligado ao board (/board): aparece no painel Agora. */
+export interface AgentSession {
+  key: string
+  actor: string
+  client: string
+  project: string | null
+  project_url: string | null
+  cwd: string
+  doing: string
+  card_id: number | null
+  card_title: string | null
+  card_url: string | null
+  active: boolean
+  idle: boolean
+  started_at: string
+  last_seen_at: string
+  ended_at: string | null
 }

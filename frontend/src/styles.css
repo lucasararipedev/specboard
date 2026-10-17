@@ -17,6 +17,17 @@
   --muted: #7a7064; /* lápis */
   --accent: #c8462b; /* vermelhão */
   --accent-soft: #f6dfd5;
+  /* Cores das marcas de IA: só para marcar cada IA na página inicial, não são acentos do app. */
+  --claude: #d97757;
+  --claude-ink: #c15f3c;
+  --claude-soft: #f8e4da;
+  --gemini: #4285f4;
+  --gemini-ink: #1a62d6;
+  --gemini-soft: #e2ecfc;
+  --chatgpt: #10a37f;
+  --chatgpt-ink: #0b7a5f;
+  --chatgpt-soft: #dcf1ea;
+  --mono-brand: #000000; /* Cursor e OpenAI (Codex) */
   --on-accent: #ffffff;
   --danger: #b4361f;
   --danger-soft: #f6dcd4;
@@ -103,6 +114,26 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
+}
+
+/* Seta própria (a nativa fica desalinhada com o padding): um "v" de traço fino, cada perna é a diagonal de um
+   gradiente de 6 px. */
+select {
+  --chevron: transparent calc(50% - 0.8px), var(--muted) calc(50% - 0.8px), var(--muted) calc(50% + 0.8px),
+    transparent calc(50% + 0.8px);
+  appearance: none;
+  padding-right: 34px;
+  background-image: linear-gradient(45deg, var(--chevron)), linear-gradient(-45deg, var(--chevron));
+  background-position:
+    calc(100% - 19px) 52%,
+    calc(100% - 13px) 52%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: var(--border-strong);
 }
 
 input::placeholder,
@@ -227,7 +258,9 @@ label {
   color: var(--danger);
 }
 
-.chip.ai {
+/* Tinta: autor IA no histórico e etiqueta escolhida no filtro. */
+.chip.ai,
+.chip.ink {
   border-color: transparent;
   background: var(--text);
   color: var(--bg);

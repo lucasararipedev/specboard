@@ -1,0 +1,14 @@
+{
+  "name": "specboard",
+  "owner": { "name": "lucasararipedev" },
+  "metadata": {
+    "description": "Specboard: kanban spec-first que a sua IA mantém por você"
+  },
+  "plugins": [
+    {
+      "name": "specboard",
+      "source": "./integrations/claude-code",
+      "description": "Liga o Claude Code ao seu Specboard: MCP, comando /board e hooks que mostram cada chat no painel Agora"
+    }
+  ]
+}
